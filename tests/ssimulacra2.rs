@@ -1,100 +1,60 @@
-//! Integration tests for the SSIMULACRA2 FFI binding.
+//! SSIMULACRA2-specific black-box tests.
 //!
-//! The whole file compiles to nothing unless the `ssimulacra2` feature is
-//! enabled, so a default `cargo test` run skips it.
+//! The universal property battery lives in `tests/properties.rs`; this file
+//! pins behaviour particular to SSIMULACRA2 (its exact perfect score, its
+//! `0..=100` range, and the 8x8 minimum). The whole file compiles to nothing
+//! unless the `ssimulacra2` feature is enabled.
 #![cfg(feature = "ssimulacra2")]
 
-use iqa_rs::{BitDepth, Channels, ColorSpace, Error, Image, ssimulacra2};
+mod common;
 
-/// Builds an 8-bit sRGB RGB image from a per-sample generator `f(x, y, c)`.
-fn rgb8(width: u32, height: u32, mut f: impl FnMut(u32, u32, usize) -> u8) -> Image {
-    let mut data = Vec::with_capacity((width * height * 3) as usize);
-    for y in 0..height {
-        for x in 0..width {
-            for c in 0..3 {
-                data.push(f(x, y, c));
-            }
-        }
+use common::*;
+use iqa_rs::{Error, ssimulacra2};
+
+#[test]
+fn identical_image_scores_exactly_100() {
+    let img = base_rgb8(64, 64);
+    assert_eq!(ssimulacra2(&img, &img).unwrap(), 100.0);
+}
+
+#[test]
+fn grayscale_input_is_accepted() {
+    let img = gray8(32, 32, |x, y| (x * 4 + y * 3) as u8);
+    assert_eq!(ssimulacra2(&img, &img).unwrap(), 100.0);
+}
+
+#[test]
+fn score_never_exceeds_100() {
+    let base = base_rgb8(64, 64);
+    for amplitude in [4.0, 16.0, 48.0] {
+        let score = ssimulacra2(&base, &distort_rgb8(&base, amplitude)).unwrap();
+        assert!(
+            score <= 100.0 && score.is_finite(),
+            "amplitude {amplitude}: score {score} is out of range",
+        );
     }
-    Image::new(
-        width,
-        height,
-        Channels::Rgb,
-        BitDepth::Eight,
-        ColorSpace::Srgb,
-        data,
-    )
-    .unwrap()
-}
-
-/// A diagonal gradient — non-trivial structure for the metric to chew on.
-fn gradient(width: u32, height: u32) -> Image {
-    rgb8(width, height, |x, y, c| {
-        (((x + y) * 2 + c as u32 * 40) % 256) as u8
-    })
 }
 
 #[test]
-fn identical_gradient_scores_near_100() {
-    let img = gradient(64, 64);
-    let score = ssimulacra2(&img, &img).unwrap();
+fn quality_decreases_with_distortion() {
+    let base = base_rgb8(64, 64);
+    let light = ssimulacra2(&base, &distort_rgb8(&base, 6.0)).unwrap();
+    let heavy = ssimulacra2(&base, &distort_rgb8(&base, 60.0)).unwrap();
     assert!(
-        (99.5..=100.0).contains(&score),
-        "expected ~100 for identical images, got {score}"
+        light > heavy,
+        "light distortion {light} should beat heavy {heavy}"
+    );
+    assert!(
+        heavy < 100.0,
+        "heavy distortion {heavy} should be clearly below 100"
     );
 }
 
 #[test]
-fn identical_solid_color_scores_near_100() {
-    let img = rgb8(32, 32, |_, _, _| 128);
-    let score = ssimulacra2(&img, &img).unwrap();
-    assert!(score > 99.5 && score.is_finite(), "got {score}");
-}
-
-#[test]
-fn distortion_lowers_the_score() {
-    let reference = gradient(64, 64);
-    // Add deterministic noise via a small LCG; clearly visible distortion.
-    let mut state = 0x1234_5678u32;
-    let distorted = rgb8(64, 64, |x, y, c| {
-        state = state.wrapping_mul(1_664_525).wrapping_add(1_013_904_223);
-        let base = (((x + y) * 2 + c as u32 * 40) % 256) as i32;
-        let noise = (state >> 24) as i32 % 48 - 24;
-        (base + noise).clamp(0, 255) as u8
-    });
-
-    let identical = ssimulacra2(&reference, &reference).unwrap();
-    let degraded = ssimulacra2(&reference, &distorted).unwrap();
-
-    assert!(
-        degraded.is_finite(),
-        "degraded score must be finite, got {degraded}"
-    );
-    assert!(
-        degraded < identical,
-        "distorted ({degraded}) should score below identical ({identical})"
-    );
-    assert!(
-        degraded < 99.0,
-        "expected a clear quality drop, got {degraded}"
-    );
-}
-
-#[test]
-fn dimension_mismatch_is_an_error() {
-    let a = gradient(16, 16);
-    let b = gradient(16, 32);
-    assert!(matches!(
-        ssimulacra2(&a, &b),
-        Err(Error::DimensionMismatch { .. })
-    ));
-}
-
-#[test]
-fn image_below_8x8_is_rejected() {
-    let tiny = gradient(4, 4);
+fn images_below_8x8_are_rejected() {
+    let tiny = base_rgb8(7, 7);
     assert!(matches!(
         ssimulacra2(&tiny, &tiny),
-        Err(Error::ImageTooSmall(4, 4, 8))
+        Err(Error::ImageTooSmall(7, 7, 8)),
     ));
 }
