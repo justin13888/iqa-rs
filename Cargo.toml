@@ -7,7 +7,18 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/justin13888/iqa-rs"
 keywords = ["iqa", "image-quality", "ssim", "psnr", "metrics"]
 categories = ["multimedia::images", "computer-vision"]
+build = "build.rs"
+links = "ssimulacra2"
+
+[features]
+default = ["psnr"]
+psnr = []
+ssimulacra2 = ["dep:cc", "dep:pkg-config"]
 
 [dependencies]
 thiserror = "2.0.18"
 tracing = "0.1.44"
+
+[build-dependencies]
+cc = { version = "1", optional = true }
+pkg-config = { version = "0.3", optional = true }

@@ -25,6 +25,19 @@ jobs:
       - name: Test
         run: cargo test
 
+  ssimulacra2:
+    name: Test (ssimulacra2 feature)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install lcms2
+        run: sudo apt-get update && sudo apt-get install -y liblcms2-dev
+      - name: Test
+        run: cargo test --features ssimulacra2
+
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
