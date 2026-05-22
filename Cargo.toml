@@ -7,7 +7,29 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/justin13888/iqa-rs"
 keywords = ["iqa", "image-quality", "ssim", "psnr", "metrics"]
 categories = ["multimedia::images", "computer-vision"]
+build = "build.rs"
+links = "ssimulacra2"
+
+[features]
+# All metrics are enabled by default for convenience. Depend on iqa-rs with
+# `default-features = false` and opt into exactly the metrics you need to keep
+# the build pure-Rust (see the README).
+default = ["psnr", "ssimulacra2"]
+psnr = []
+ssimulacra2 = ["dep:cc", "dep:pkg-config"]
 
 [dependencies]
 thiserror = "2.0.18"
 tracing = "0.1.44"
+
+[build-dependencies]
+cc = { version = "1", optional = true }
+pkg-config = { version = "0.3", optional = true }
+
+[dev-dependencies]
+# Used only by examples, to decode PNG/JPEG files into iqa-rs inputs.
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+
+[[example]]
+name = "compare"
+required-features = ["psnr", "ssimulacra2"]
