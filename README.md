@@ -8,17 +8,17 @@ The table below tracks the planned metric set — the nine-metric full-reference
 
 The `Implementation` column points at the implementation `iqa-rs` is built on. We prefer porting or binding the upstream source implementation over reusing a Rust-specific reimplementation: cross-compilation is a requirement, but portability beyond that is not, so staying close to the reference keeps results faithful.
 
-| IQA         | Implementation                                                                              | Status      |
-| ----------- | ------------------------------------------------------------------------------------------- | ----------- |
-| SSIMULACRA2 | [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2)                         | Planned     |
-| Butteraugli | [libjxl](https://github.com/libjxl/libjxl)                                                  | Planned     |
-| DSSIM       | [kornelski/dssim](https://github.com/kornelski/dssim)                                       | Planned     |
-| XPSNR       | [fraunhoferhhi/xpsnr](https://github.com/fraunhoferhhi/xpsnr)                               | Planned     |
-| PSNR        | Native implementation                                                                       | Planned     |
-| PSNR-HVS-M  | [xiph/daala — `tools/psnrhvs.c`](https://github.com/xiph/daala/blob/master/tools/psnrhvs.c) | Planned     |
-| SSIM        | Native implementation                                                                       | Planned     |
-| MS-SSIM     | [xiph/daala — `tools/ssim.c`](https://github.com/xiph/daala/blob/master/tools/ssim.c)       | Planned     |
-| CIEDE2000   | Native implementation                                                                       | Planned     |
+| IQA         | Implementation                                                                              | Status       |
+| ----------- | ------------------------------------------------------------------------------------------- | ------------ |
+| SSIMULACRA2 | [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2)                         | Planned      |
+| Butteraugli | [libjxl](https://github.com/libjxl/libjxl)                                                  | Planned      |
+| DSSIM       | [kornelski/dssim](https://github.com/kornelski/dssim)                                       | Planned      |
+| XPSNR       | [fraunhoferhhi/xpsnr](https://github.com/fraunhoferhhi/xpsnr)                               | Planned      |
+| PSNR        | Native implementation                                                                       | Planned      |
+| PSNR-HVS-M  | [xiph/daala — `tools/psnrhvs.c`](https://github.com/xiph/daala/blob/master/tools/psnrhvs.c) | Planned      |
+| SSIM        | Native implementation                                                                       | Planned      |
+| MS-SSIM     | [xiph/daala — `tools/ssim.c`](https://github.com/xiph/daala/blob/master/tools/ssim.c)       | Planned      |
+| CIEDE2000   | Native implementation                                                                       | Planned      |
 | LPIPS       | [richzhang/PerceptualSimilarity](https://github.com/richzhang/PerceptualSimilarity)         | Not planned* |
 
 *: LPIPS is Python implementation only.
@@ -30,3 +30,28 @@ The `Implementation` column points at the implementation `iqa-rs` is built on. W
 - **Planned** — selected for implementation, not yet started.
 - **Require testing** — implemented, but not yet validated against reference outputs.
 - **Stable and tested** — implemented and verified against the reference implementation.
+
+## Development
+
+It is important that development velocity is maintained regardless of project complexity. Unit tests for all contributions are expected, especially for platform-specific behaviours!
+
+### Setup
+
+Install [lefthook](https://github.com/evilmartians/lefthook) and activate the pre-commit and pre-push hooks:
+
+```sh
+# macOS / Homebrew
+brew install lefthook
+
+# Linux (Homebrew on Linux)
+brew install lefthook
+
+# via cargo
+cargo install lefthook
+
+# then install the hooks
+lefthook install
+```
+
+The pre-commit hook runs `cargo fmt --check` and `cargo clippy`.
+The pre-push hook runs the full test suite.
