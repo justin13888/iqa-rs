@@ -32,28 +32,24 @@ fn assert_close(actual: f64, expected: f64, context: &str) {
 
 #[test]
 fn identical_images_are_infinite() {
-    let fixtures = [
-        ("rgb8", base_rgb8(8, 8)),
-        ("rgb16", base_rgb16(8, 8)),
-        ("grayscale", gray8(8, 8, |x, y| (x + y) as u8)),
-        ("rgba8", rgba8(8, 8, |x, y, c| (x + y + c as u32) as u8)),
-    ];
-    for (label, img) in fixtures {
-        for opts in [RGB_AVERAGED, LUMA709] {
-            assert_eq!(
-                psnr(&img, &img, opts).unwrap(),
-                f64::INFINITY,
-                "{label}: identical images must score infinite PSNR",
-            );
-        }
+    // One case per pixel format: identical inputs must score infinite PSNR.
+    let rgb8 = Srgb8::base(8, 8);
+    let rgb16 = Srgb16::base(8, 8);
+    let gray = gray8(8, 8, |x, y| (x + y) as u8);
+    let rgba = rgba8(8, 8, |x, y, c| (x + y + c as u32) as u8);
+    for opts in [RGB_AVERAGED, LUMA709] {
+        assert_eq!(psnr(&rgb8, &rgb8, opts).unwrap(), f64::INFINITY, "rgb8");
+        assert_eq!(psnr(&rgb16, &rgb16, opts).unwrap(), f64::INFINITY, "rgb16");
+        assert_eq!(psnr(&gray, &gray, opts).unwrap(), f64::INFINITY, "grayscale");
+        assert_eq!(psnr(&rgba, &rgba, opts).unwrap(), f64::INFINITY, "rgba8");
     }
 }
 
 #[test]
 fn black_versus_white_is_zero_db() {
     // d = MAX, so PSNR = 20*log10(1) = 0 dB exactly.
-    let black = rgb8(4, 4, |_, _, _| 0);
-    let white = rgb8(4, 4, |_, _, _| 255);
+    let black = srgb8(4, 4, |_, _, _| 0);
+    let white = srgb8(4, 4, |_, _, _| 255);
     let result = psnr(&black, &white, RGB_AVERAGED).unwrap();
     assert!(result.abs() < 1e-12, "expected 0 dB, got {result}");
 }
@@ -61,8 +57,8 @@ fn black_versus_white_is_zero_db() {
 #[test]
 fn uniform_error_matches_the_closed_form_8bit() {
     for d in [1u8, 7, 64, 200] {
-        let reference = rgb8(6, 6, |_, _, _| 0);
-        let distorted = rgb8(6, 6, |_, _, _| d);
+        let reference = srgb8(6, 6, |_, _, _| 0);
+        let distorted = srgb8(6, 6, |_, _, _| d);
         let result = psnr(&reference, &distorted, RGB_AVERAGED).unwrap();
         assert_close(
             result,
@@ -90,8 +86,8 @@ fn uniform_error_matches_the_closed_form_grayscale() {
 fn uniform_error_matches_the_closed_form_16bit() {
     // MAX is 65535 for 16-bit, so the same absolute error scores far higher.
     for d in [1u16, 100, 30_000] {
-        let reference = rgb16(6, 6, |_, _, _| 0);
-        let distorted = rgb16(6, 6, |_, _, _| d);
+        let reference = srgb16(6, 6, |_, _, _| 0);
+        let distorted = srgb16(6, 6, |_, _, _| d);
         let result = psnr(&reference, &distorted, RGB_AVERAGED).unwrap();
         assert_close(
             result,
@@ -104,8 +100,8 @@ fn uniform_error_matches_the_closed_form_16bit() {
 #[test]
 fn single_sample_error_matches_hand_computed_mse() {
     // One sample of a 4x4 RGB image (48 samples) is off by 1: MSE = 1/48.
-    let reference = rgb8(4, 4, |_, _, _| 100);
-    let distorted = rgb8(
+    let reference = srgb8(4, 4, |_, _, _| 100);
+    let distorted = srgb8(
         4,
         4,
         |x, y, c| if x == 0 && y == 0 && c == 0 { 101 } else { 100 },
@@ -120,8 +116,8 @@ fn luma_applies_rec709_weights() {
     // Distort only the red channel by d. Rec.709 luma error is 0.2126*d,
     // giving PSNR = 20*log10(MAX / (0.2126*d)).
     let d = 40.0;
-    let reference = rgb8(6, 6, |_, _, _| 50);
-    let distorted = rgb8(6, 6, |_, _, c| if c == 0 { 90 } else { 50 });
+    let reference = srgb8(6, 6, |_, _, _| 50);
+    let distorted = srgb8(6, 6, |_, _, c| if c == 0 { 90 } else { 50 });
     let result = psnr(&reference, &distorted, LUMA709).unwrap();
     assert_close(
         result,
@@ -156,30 +152,10 @@ fn alpha_differences_are_ignored() {
 
 #[test]
 fn dimension_mismatch_is_an_error() {
-    let a = base_rgb8(8, 8);
-    let b = base_rgb8(8, 4);
+    let a = Srgb8::base(8, 8);
+    let b = Srgb8::base(8, 4);
     assert!(matches!(
         psnr(&a, &b, RGB_AVERAGED),
         Err(Error::DimensionMismatch { .. })
-    ));
-}
-
-#[test]
-fn channel_mismatch_is_an_error() {
-    let rgb = base_rgb8(8, 8);
-    let gray = gray8(8, 8, |_, _| 0);
-    assert!(matches!(
-        psnr(&rgb, &gray, RGB_AVERAGED),
-        Err(Error::Incompatible(_))
-    ));
-}
-
-#[test]
-fn bit_depth_mismatch_is_an_error() {
-    let eight = base_rgb8(8, 8);
-    let sixteen = base_rgb16(8, 8);
-    assert!(matches!(
-        psnr(&eight, &sixteen, RGB_AVERAGED),
-        Err(Error::Incompatible(_))
     ));
 }

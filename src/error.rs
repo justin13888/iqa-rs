@@ -16,19 +16,14 @@ pub enum Error {
     #[error("image too small: {0}x{1}, minimum is {2}x{2}")]
     ImageTooSmall(u32, u32, u32),
 
-    /// A pixel buffer's length does not match the declared dimensions.
-    #[error("buffer size mismatch: expected {expected} bytes, got {actual}")]
+    /// A sample buffer's length does not match the declared dimensions.
+    #[error("buffer size mismatch: expected {expected} samples, got {actual}")]
     BufferSize {
-        /// Number of bytes the dimensions/format require.
+        /// Number of samples the dimensions and format require.
         expected: usize,
-        /// Number of bytes actually provided.
+        /// Number of samples actually provided.
         actual: usize,
     },
-
-    /// Two images are otherwise valid but cannot be compared directly
-    /// (mismatched channel layout, bit depth, or color space).
-    #[error("incompatible images: {0}")]
-    Incompatible(String),
 
     /// The native SSIMULACRA2 implementation reported a failure.
     #[error("ssimulacra2 computation failed")]
