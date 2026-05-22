@@ -59,7 +59,12 @@ impl ScaledSample for u16 {
 }
 
 /// Builds a tightly packed, row-major sample buffer from a generator.
-fn grid<S>(width: u32, height: u32, channels: usize, mut f: impl FnMut(u32, u32, usize) -> S) -> Vec<S> {
+fn grid<S>(
+    width: u32,
+    height: u32,
+    channels: usize,
+    mut f: impl FnMut(u32, u32, usize) -> S,
+) -> Vec<S> {
     let mut data = Vec::with_capacity(width as usize * height as usize * channels);
     for y in 0..height {
         for x in 0..width {

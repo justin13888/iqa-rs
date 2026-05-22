@@ -68,10 +68,7 @@ impl Ssimulacra2Input for Rgba16 {}
 /// let _ = ssimulacra2(&rgb, &gray); // mismatched formats
 /// # Ok::<(), iqa_rs::Error>(())
 /// ```
-pub fn ssimulacra2<F: Ssimulacra2Input>(
-    reference: &Image<F>,
-    distorted: &Image<F>,
-) -> Result<f64> {
+pub fn ssimulacra2<F: Ssimulacra2Input>(reference: &Image<F>, distorted: &Image<F>) -> Result<f64> {
     if reference.dimensions() != distorted.dimensions() {
         return Err(Error::DimensionMismatch {
             a: reference.dimensions(),

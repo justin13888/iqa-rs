@@ -40,7 +40,11 @@ fn identical_images_are_infinite() {
     for opts in [RGB_AVERAGED, LUMA709] {
         assert_eq!(psnr(&rgb8, &rgb8, opts).unwrap(), f64::INFINITY, "rgb8");
         assert_eq!(psnr(&rgb16, &rgb16, opts).unwrap(), f64::INFINITY, "rgb16");
-        assert_eq!(psnr(&gray, &gray, opts).unwrap(), f64::INFINITY, "grayscale");
+        assert_eq!(
+            psnr(&gray, &gray, opts).unwrap(),
+            f64::INFINITY,
+            "grayscale"
+        );
         assert_eq!(psnr(&rgba, &rgba, opts).unwrap(), f64::INFINITY, "rgba8");
     }
 }
