@@ -33,19 +33,31 @@ The `Implementation` column points at the implementation `iqa-rs` is built on. W
 
 ## Cargo features
 
-Each metric is gated behind its own Cargo feature so you only pay for what you use:
+Each metric is gated behind its own Cargo feature:
 
-| Feature       | Default | Notes                                                              |
-| ------------- | ------- | ------------------------------------------------------------------ |
-| `psnr`        | yes     | Native Rust; no system dependencies.                               |
-| `ssimulacra2` | no      | Binds the vendored C++ reference; see the build requirements below. |
+| Feature       | Default | Notes                                                               |
+| ------------- | ------- | ------------------------------------------------------------------- |
+| `psnr`        | yes     | Native Rust; no system dependencies.                                |
+| `ssimulacra2` | yes     | Binds the vendored C++ reference; see the build requirements below. |
 
-The default build (`psnr` only) is pure Rust and invokes no C or C++ compiler.
+**Every metric is enabled by default for convenience** — `cargo add iqa-rs`
+gets you the full set. Some metrics (such as `ssimulacra2`) bind native C/C++
+code and therefore need a C++ toolchain and system libraries to build.
+
+For leaner builds, disable the default features and opt into exactly the
+metrics you need:
+
+```toml
+[dependencies]
+# Pure-Rust subset only — no C/C++ toolchain required.
+iqa-rs = { version = "0.1", default-features = false, features = ["psnr"] }
+```
 
 ### Building with `ssimulacra2`
 
 SSIMULACRA2 is bound via FFI to the original C++ reference rather than
-reimplemented, so enabling it has extra requirements:
+reimplemented, so enabling it (including via the default feature set) has extra
+requirements:
 
 1. **Submodules.** The C++ sources are vendored under `third_party/`:
 

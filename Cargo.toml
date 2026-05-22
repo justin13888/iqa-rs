@@ -11,7 +11,10 @@ build = "build.rs"
 links = "ssimulacra2"
 
 [features]
-default = ["psnr"]
+# All metrics are enabled by default for convenience. Depend on iqa-rs with
+# `default-features = false` and opt into exactly the metrics you need to keep
+# the build pure-Rust (see the README).
+default = ["psnr", "ssimulacra2"]
 psnr = []
 ssimulacra2 = ["dep:cc", "dep:pkg-config"]
 
