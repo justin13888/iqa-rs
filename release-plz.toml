@@ -1,0 +1,7 @@
+# release-plz configuration — https://release-plz.dev/docs/config
+[workspace]
+# Record every published version in git: a `vX.Y.Z` tag plus a matching
+# GitHub release. Both are release-plz defaults, pinned here so the
+# "every release is tagged" guarantee is explicit rather than implicit.
+git_tag_enable = true
+git_release_enable = true

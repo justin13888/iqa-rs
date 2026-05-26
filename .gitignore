@@ -1,1 +1,4 @@
 target/
+
+# Scratch image for running the `compare` example; not part of the crate.
+/test.jpg

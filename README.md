@@ -106,3 +106,29 @@ lefthook install
 
 The pre-commit hook runs `cargo fmt --check` and `cargo clippy`.
 The pre-push hook runs the full test suite.
+
+### Releasing
+
+Releases are automated with [release-plz](https://release-plz.dev) and driven by
+[Conventional Commits](https://www.conventionalcommits.org): the commit messages
+landed on `master` decide the next version number and fill in `CHANGELOG.md`.
+
+To cut a release:
+
+1. Land changes on `master` with Conventional Commit messages (`feat:`, `fix:`,
+   `refactor!:`, ...).
+2. release-plz maintains an open **release PR** that bumps the version in
+   `Cargo.toml`, updates `CHANGELOG.md`, and refreshes `Cargo.lock`. Review it as
+   you would any other PR.
+3. **Merge the release PR.** Merging it is the whole release: release-plz
+   publishes the crate to crates.io, pushes a `vX.Y.Z` git tag, and creates the
+   matching GitHub release.
+
+Publishing authenticates with crates.io
+[trusted publishing](https://crates.io/docs/trusted-publishing) over OIDC, so no
+registry token is stored in the repository. The workflow lives in
+[`.github/workflows/release-plz.yml`](.github/workflows/release-plz.yml).
+
+`0.1.0` was published by hand to bootstrap the crate — trusted publishing can
+only be configured once a crate already exists on crates.io. Every release after
+it is fully automated by merging the release PR.
