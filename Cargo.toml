@@ -7,6 +7,10 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/justin13888/iqa-rs"
 keywords = ["iqa", "image-quality", "ssim", "psnr", "metrics"]
 categories = ["multimedia::images", "computer-vision"]
+readme = "README.md"
+documentation = "https://docs.rs/iqa-rs"
+# Minimum supported Rust version. 1.85 is the edition-2024 baseline.
+rust-version = "1.85"
 build = "build.rs"
 links = "ssimulacra2"
 
@@ -33,3 +37,9 @@ image = { version = "0.25", default-features = false, features = ["png", "jpeg"]
 [[example]]
 name = "compare"
 required-features = ["psnr", "ssimulacra2"]
+
+[package.metadata.docs.rs]
+# Document every metric (including ssimulacra2) on docs.rs, matching the
+# default build. The vendored C++ sources ship inside the published crate, and
+# docs.rs provides the system lcms2 the ssimulacra2 build needs.
+all-features = true
