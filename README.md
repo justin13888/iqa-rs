@@ -174,6 +174,16 @@ lefthook install
 The pre-commit hook runs `cargo fmt --check` and `cargo clippy`.
 The pre-push hook runs the full test suite.
 
+### Checking size
+
+`just size` builds the library under every unique feature combination and prints
+the compiled footprint of each, plus the published-crate size. It also enforces
+that the `ssimulacra2` FFI **compiles away cleanly**: every pure-Rust combo must
+link zero native code and pull neither `cc` nor `pkg-config` into its build
+graph. A violation exits non-zero. The same check runs weekly (and on any PR that
+touches `Cargo.toml`, `build.rs`, `third_party/`, or the script) via the `Size`
+workflow, which posts the size table to the run summary.
+
 ### Releasing
 
 Releases are automated with [release-plz](https://release-plz.dev) and driven by

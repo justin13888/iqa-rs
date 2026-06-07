@@ -25,3 +25,7 @@ test:
 # Generate a code coverage report
 coverage:
     cargo llvm-cov
+
+# Measure compiled size per feature combo and verify the FFI compiles away
+size:
+    ./scripts/check-size.sh
