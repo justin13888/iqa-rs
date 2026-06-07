@@ -55,6 +55,7 @@ mod ssimulacra2 {
         let s2_src = third_party.join("ssimulacra2/src");
         let s2_lib = s2_src.join("lib");
         let highway = third_party.join("highway");
+        let lcms2 = third_party.join("lcms2");
         let shim = third_party.join("shim");
 
         assert_submodule(&s2_src.join("ssimulacra2.cc"), "ssimulacra2");
@@ -84,11 +85,9 @@ mod ssimulacra2 {
             .define("JPEGXL_PATCH_VERSION", "0")
             .define("JXL_INTERNAL_LIBRARY_BUILD", None);
 
-        let lcms2 = pkg_config::Config::new()
-            .cargo_metadata(false)
-            .probe("lcms2")
-            .expect("lcms2 not found — install liblcms2-dev (Debian) / lcms2 (Homebrew)");
-        for dir in &lcms2.include_paths {
+        // lcms2 headers for the jxl color-management sources. Vendored by
+        // default; the system path returns pkg-config's include dirs instead.
+        for dir in lcms2_include_dirs(&lcms2) {
             jxl.include(dir);
         }
 
@@ -107,6 +106,56 @@ mod ssimulacra2 {
         }
         hwy.compile("hwy");
 
+        // lcms2 last: compile the vendored archive (or re-probe the system
+        // library) so its link directives land after the archive needing them.
+        link_lcms2(&lcms2);
+    }
+
+    /// Resolves the lcms2 header include directories for the jxl build.
+    ///
+    /// Vendored unless the build opted into `system-lcms2` *without*
+    /// `vendored-lcms2`; that precedence keeps `--all-features` (and docs.rs)
+    /// on the vendored path, so they need no system library.
+    #[cfg(not(all(feature = "system-lcms2", not(feature = "vendored-lcms2"))))]
+    fn lcms2_include_dirs(lcms2: &Path) -> Vec<PathBuf> {
+        assert_submodule(&lcms2.join("include/lcms2.h"), "lcms2");
+        vec![lcms2.join("include")]
+    }
+
+    #[cfg(all(feature = "system-lcms2", not(feature = "vendored-lcms2")))]
+    fn lcms2_include_dirs(_lcms2: &Path) -> Vec<PathBuf> {
+        pkg_config::Config::new()
+            .cargo_metadata(false)
+            .probe("lcms2")
+            .expect("lcms2 not found — install liblcms2-dev (Debian) / lcms2 (Homebrew)")
+            .include_paths
+    }
+
+    /// Compiles the vendored lcms2 sources into `liblcms2.a`.
+    ///
+    /// lcms2 is plain C (unlike the C++ jxl subset), so it gets its own
+    /// `cc::Build`. The math library is added explicitly: lcms2 calls `pow`/
+    /// `sqrt`, and a static C archive does not pull `libm` in on its own.
+    #[cfg(not(all(feature = "system-lcms2", not(feature = "vendored-lcms2"))))]
+    fn link_lcms2(lcms2: &Path) {
+        let mut build = cc::Build::new();
+        // Vendored code, not ours to fix; silence its warnings like the rest.
+        build.warnings(false).include(lcms2.join("include"));
+        for entry in fs::read_dir(lcms2.join("src")).expect("read third_party/lcms2/src") {
+            let path = entry.expect("read third_party/lcms2/src entry").path();
+            if path.extension().is_some_and(|ext| ext == "c") {
+                build.file(path);
+            }
+        }
+        build.compile("lcms2");
+
+        if cfg!(unix) {
+            println!("cargo:rustc-link-lib=m");
+        }
+    }
+
+    #[cfg(all(feature = "system-lcms2", not(feature = "vendored-lcms2")))]
+    fn link_lcms2(_lcms2: &Path) {
         // Re-probe with cargo metadata enabled so the link directives are
         // emitted last in the link line.
         pkg_config::Config::new()

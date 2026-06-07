@@ -18,10 +18,16 @@ links = "ssimulacra2"
 # All metrics are enabled by default for convenience. Depend on iqa with
 # `default-features = false` and opt into exactly the metrics you need to keep
 # the build pure-Rust (see the README).
-default = ["psnr", "ssim", "ssimulacra2"]
+default = ["psnr", "ssim", "ssimulacra2", "vendored-lcms2"]
 psnr = []
 ssim = []
-ssimulacra2 = ["dep:cc", "dep:pkg-config"]
+ssimulacra2 = ["dep:cc"]
+# lcms2 backend for ssimulacra2's color management. `vendored-lcms2` builds the
+# library from the `third_party/lcms2` submodule (default, no system dependency).
+# `system-lcms2` links a system lcms2 via pkg-config instead; when both are
+# enabled the vendored build wins, so `--all-features` needs no system library.
+vendored-lcms2 = []
+system-lcms2 = ["dep:pkg-config"]
 
 [dependencies]
 thiserror = "2.0.18"

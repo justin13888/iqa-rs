@@ -4,3 +4,6 @@
 [submodule "third_party/highway"]
 	path = third_party/highway
 	url = https://github.com/google/highway.git
+[submodule "third_party/lcms2"]
+	path = third_party/lcms2
+	url = https://github.com/mm2/Little-CMS.git
