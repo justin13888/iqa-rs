@@ -30,7 +30,7 @@ leaves image decoding to you (here, the [`image`](https://crates.io/crates/image
 crate):
 
 ```rust
-use iqa::{Image, PsnrOptions};
+use iqa::{Image, PsnrOptions, SsimOptions};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Decode however you like, then hand iqa the raw samples.
@@ -45,6 +45,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // PSNR — pure Rust, always available.
     let psnr = iqa::psnr(&reference, &distorted, PsnrOptions::default())?;
     println!("PSNR:        {psnr:.3} dB");
+
+    // SSIM — pure Rust; 1.0 = identical.
+    let ssim = iqa::ssim(&reference, &distorted, SsimOptions::default())?;
+    println!("SSIM:        {ssim:.3}");
 
     // SSIMULACRA2 — requires the `ssimulacra2` feature; 100 = identical.
     let ssimulacra2 = iqa::ssimulacra2(&reference, &distorted)?;
@@ -73,7 +77,7 @@ The `Implementation` column points at the implementation `iqa` is built on. We p
 | XPSNR       | [fraunhoferhhi/xpsnr](https://github.com/fraunhoferhhi/xpsnr)                               | Planned         |
 | PSNR        | Native implementation                                                                       | Require testing |
 | PSNR-HVS-M  | [xiph/daala — `tools/psnrhvs.c`](https://github.com/xiph/daala/blob/master/tools/psnrhvs.c) | Planned         |
-| SSIM        | Native implementation                                                                       | Planned         |
+| SSIM        | Native implementation                                                                       | Require testing |
 | MS-SSIM     | [xiph/daala — `tools/ssim.c`](https://github.com/xiph/daala/blob/master/tools/ssim.c)       | Planned         |
 | CIEDE2000   | Native implementation                                                                       | Planned         |
 | LPIPS       | [richzhang/PerceptualSimilarity](https://github.com/richzhang/PerceptualSimilarity)         | Not planned*    |
@@ -95,6 +99,7 @@ Each metric is gated behind its own Cargo feature:
 | Feature       | Default | Notes                                                               |
 | ------------- | ------- | ------------------------------------------------------------------- |
 | `psnr`        | yes     | Native Rust; no system dependencies.                                |
+| `ssim`        | yes     | Native Rust; no system dependencies.                                |
 | `ssimulacra2` | yes     | Binds the vendored C++ reference; see the build requirements below. |
 
 **Every metric is enabled by default for convenience** — `cargo add iqa`

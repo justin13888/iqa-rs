@@ -17,6 +17,8 @@
 //! Each metric is gated behind a Cargo feature:
 //!
 //! - `psnr` *(default)* — peak signal-to-noise ratio, a native implementation.
+//! - `ssim` *(default)* — structural similarity index (SSIM), a native
+//!   implementation.
 //! - `ssimulacra2` *(default)* — SSIMULACRA2, bound via FFI to the vendored
 //!   C++ reference. Enabling it requires the `third_party/` git submodules and
 //!   a system `lcms2`; see the project README.
@@ -35,6 +37,11 @@ pub use image::{BitDepth, Channels, ColorSpace, Image};
 mod psnr;
 #[cfg(feature = "psnr")]
 pub use psnr::{PsnrMode, PsnrOptions, psnr};
+
+#[cfg(feature = "ssim")]
+mod ssim;
+#[cfg(feature = "ssim")]
+pub use ssim::{SsimMode, SsimOptions, ssim};
 
 #[cfg(feature = "ssimulacra2")]
 mod ssimulacra2;

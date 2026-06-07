@@ -18,8 +18,9 @@ links = "ssimulacra2"
 # All metrics are enabled by default for convenience. Depend on iqa with
 # `default-features = false` and opt into exactly the metrics you need to keep
 # the build pure-Rust (see the README).
-default = ["psnr", "ssimulacra2"]
+default = ["psnr", "ssim", "ssimulacra2"]
 psnr = []
+ssim = []
 ssimulacra2 = ["dep:cc", "dep:pkg-config"]
 
 [dependencies]
@@ -36,7 +37,7 @@ image = { version = "0.25", default-features = false, features = ["png", "jpeg"]
 
 [[example]]
 name = "compare"
-required-features = ["psnr", "ssimulacra2"]
+required-features = ["psnr", "ssim", "ssimulacra2"]
 
 [package.metadata.docs.rs]
 # Document every metric (including ssimulacra2) on docs.rs, matching the
