@@ -102,8 +102,8 @@ Each metric is gated behind its own Cargo feature:
 | `psnr`           | yes     | Native Rust; no system dependencies.                                           |
 | `ssim`           | yes     | Native Rust; no system dependencies.                                           |
 | `ssimulacra2`    | yes     | Binds the vendored C++ reference; see the build requirements below.            |
-| `vendored-lcms2` | yes     | Builds the `lcms2` dependency from vendored source — no system lib needed.     |
-| `system-lcms2`   | no      | Links a system `lcms2` via `pkg-config` instead (takes effect only if `vendored-lcms2` is off). |
+| `vendored-lcms2` | yes     | Builds the `lcms2` dependency from vendored source — no system lib needed. Mutually exclusive with `system-lcms2`. |
+| `system-lcms2`   | no      | Links a system `lcms2` via `pkg-config` instead. Mutually exclusive with `vendored-lcms2` — enable exactly one. |
 
 **Every metric is enabled by default for convenience** — `cargo add iqa`
 gets you the full set. Some metrics (such as `ssimulacra2`) bind native C/C++

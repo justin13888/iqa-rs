@@ -21,6 +21,20 @@ mod ssimulacra2 {
     use std::path::{Path, PathBuf};
     use std::{env, fs};
 
+    // SSIMULACRA2's color management needs exactly one lcms2 backend. Cargo
+    // features are additive, so a plain pair of flags could be both enabled
+    // (e.g. `--all-features`) or both disabled; neither is a valid build.
+    // These guards make the choice a structural XOR: enable exactly one.
+    #[cfg(all(feature = "vendored-lcms2", feature = "system-lcms2"))]
+    compile_error!(
+        "features `vendored-lcms2` and `system-lcms2` are mutually exclusive: enable exactly one"
+    );
+    #[cfg(not(any(feature = "vendored-lcms2", feature = "system-lcms2")))]
+    compile_error!(
+        "the `ssimulacra2` feature needs an lcms2 backend: enable exactly one of \
+         `vendored-lcms2` or `system-lcms2`"
+    );
+
     /// Minimal stand-in for the `jxl_export.h` that libjxl's CMake generates.
     ///
     /// We link the libjxl subset statically, so every visibility macro is a
@@ -113,10 +127,11 @@ mod ssimulacra2 {
 
     /// Resolves the lcms2 header include directories for the jxl build.
     ///
-    /// Vendored unless the build opted into `system-lcms2` *without*
-    /// `vendored-lcms2`; that precedence keeps `--all-features` (and docs.rs)
-    /// on the vendored path, so they need no system library.
-    #[cfg(not(all(feature = "system-lcms2", not(feature = "vendored-lcms2"))))]
+    /// The vendored and system backends are mutually exclusive (the
+    /// `compile_error!` guards above reject both-on and both-off). The system
+    /// variant additionally excludes `vendored-lcms2` so that an erroneous
+    /// both-on build emits only the XOR error, not a duplicate-definition one.
+    #[cfg(feature = "vendored-lcms2")]
     fn lcms2_include_dirs(lcms2: &Path) -> Vec<PathBuf> {
         assert_submodule(&lcms2.join("include/lcms2.h"), "lcms2");
         vec![lcms2.join("include")]
@@ -136,7 +151,7 @@ mod ssimulacra2 {
     /// lcms2 is plain C (unlike the C++ jxl subset), so it gets its own
     /// `cc::Build`. The math library is added explicitly: lcms2 calls `pow`/
     /// `sqrt`, and a static C archive does not pull `libm` in on its own.
-    #[cfg(not(all(feature = "system-lcms2", not(feature = "vendored-lcms2"))))]
+    #[cfg(feature = "vendored-lcms2")]
     fn link_lcms2(lcms2: &Path) {
         let mut build = cc::Build::new();
         // Vendored code, not ours to fix; silence its warnings like the rest.

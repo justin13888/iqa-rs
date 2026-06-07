@@ -22,10 +22,11 @@ default = ["psnr", "ssim", "ssimulacra2", "vendored-lcms2"]
 psnr = []
 ssim = []
 ssimulacra2 = ["dep:cc"]
-# lcms2 backend for ssimulacra2's color management. `vendored-lcms2` builds the
-# library from the `third_party/lcms2` submodule (default, no system dependency).
-# `system-lcms2` links a system lcms2 via pkg-config instead; when both are
-# enabled the vendored build wins, so `--all-features` needs no system library.
+# lcms2 backend for ssimulacra2's color management. Mutually exclusive: enable
+# exactly one (build.rs enforces the XOR with `compile_error!`). `vendored-lcms2`
+# builds the library from the `third_party/lcms2` submodule (default, no system
+# dependency); `system-lcms2` links a system lcms2 via pkg-config instead. Note
+# this means `--all-features` is not a valid build — name the backend you want.
 vendored-lcms2 = []
 system-lcms2 = ["dep:pkg-config"]
 
@@ -46,7 +47,8 @@ name = "compare"
 required-features = ["psnr", "ssim", "ssimulacra2"]
 
 [package.metadata.docs.rs]
-# Document every metric (including ssimulacra2) on docs.rs, matching the
-# default build. The vendored C++ sources ship inside the published crate, and
-# docs.rs provides the system lcms2 the ssimulacra2 build needs.
-all-features = true
+# Document every metric (including ssimulacra2) on docs.rs, matching the default
+# build. The lcms2 backends are mutually exclusive, so `all-features` is not a
+# valid build; name the metric set explicitly and pin the vendored backend so
+# docs.rs needs no system library (the vendored C++ ships in the published crate).
+features = ["psnr", "ssim", "ssimulacra2", "vendored-lcms2"]
