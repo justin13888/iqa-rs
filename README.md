@@ -14,9 +14,10 @@ cargo add iqa
 ```
 
 This pulls in every metric. Some (such as `ssimulacra2`) compile vendored C/C++
-and therefore need a C++ toolchain and the system `lcms2` library — see
+and therefore need a C++ toolchain — but no system libraries: `lcms2` is
+vendored and built from source by default. See
 [Cargo features](#cargo-features) for the details. For a pure-Rust build with no
-system dependencies, disable the defaults and take just the metrics you need:
+C/C++ toolchain at all, disable the defaults and take just the metrics you need:
 
 ```toml
 [dependencies]
@@ -96,11 +97,13 @@ The `Implementation` column points at the implementation `iqa` is built on. We p
 
 Each metric is gated behind its own Cargo feature:
 
-| Feature       | Default | Notes                                                               |
-| ------------- | ------- | ------------------------------------------------------------------- |
-| `psnr`        | yes     | Native Rust; no system dependencies.                                |
-| `ssim`        | yes     | Native Rust; no system dependencies.                                |
-| `ssimulacra2` | yes     | Binds the vendored C++ reference; see the build requirements below. |
+| Feature          | Default | Notes                                                                          |
+| ---------------- | ------- | ------------------------------------------------------------------------------ |
+| `psnr`           | yes     | Native Rust; no system dependencies.                                           |
+| `ssim`           | yes     | Native Rust; no system dependencies.                                           |
+| `ssimulacra2`    | yes     | Binds the vendored C++ reference; see the build requirements below.            |
+| `vendored-lcms2` | yes     | Builds the `lcms2` dependency from vendored source — no system lib needed. Mutually exclusive with `system-lcms2`. |
+| `system-lcms2`   | no      | Links a system `lcms2` via `pkg-config` instead. Mutually exclusive with `vendored-lcms2` — enable exactly one. |
 
 **Every metric is enabled by default for convenience** — `cargo add iqa`
 gets you the full set. Some metrics (such as `ssimulacra2`) bind native C/C++
@@ -124,20 +127,31 @@ native build environment:
 1. **A C++ toolchain.** `build.rs` compiles the reference with the `cc` crate,
    which uses `c++` by default (override with the `CXX` environment variable).
 
-2. **lcms2.** libjxl's color management needs the system `lcms2` library,
-   located via `pkg-config`:
+That is the only requirement. libjxl's color management depends on `lcms2`,
+which `iqa` **vendors and builds from source by default** (the `vendored-lcms2`
+feature) — there is no system library to install.
 
-   ```sh
-   sudo apt install liblcms2-dev   # Debian / Ubuntu
-   brew install little-cms2        # macOS / Homebrew
-   ```
+If you would rather link a system `lcms2` (for example, as a distro packager),
+turn the vendored feature off and enable `system-lcms2`, which locates the
+library via `pkg-config`:
 
-When you depend on `iqa` from crates.io that is all you need — the vendored
-C++ sources are packaged inside the published crate, so there are no submodules
-to fetch.
+```toml
+[dependencies]
+iqa = { version = "0.1", default-features = false, features = ["psnr", "ssim", "ssimulacra2", "system-lcms2"] }
+```
+
+```sh
+sudo apt install liblcms2-dev   # Debian / Ubuntu
+brew install little-cms2        # macOS / Homebrew
+```
+
+When you depend on `iqa` from crates.io the vendored C/C++ sources (including
+`lcms2`) are packaged inside the published crate, so there are no submodules to
+fetch.
 
 **Building from a git checkout** (contributors) additionally needs those
-sources, which live under `third_party/` as git submodules:
+sources, which live under `third_party/` as git submodules (`ssimulacra2`,
+`highway`, and `lcms2`):
 
 ```sh
 git submodule update --init --recursive
