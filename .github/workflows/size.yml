@@ -1,0 +1,40 @@
+name: Size
+
+on:
+  schedule:
+    # Weekly, Monday 06:00 UTC — periodic drift check.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "build.rs"
+      - "third_party/**"
+      - "scripts/check-size.sh"
+      - ".github/workflows/size.yml"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  size:
+    name: Package size & FFI-compiles-away
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # ssimulacra2 + highway sources are needed for the FFI combos.
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install lcms2
+        run: sudo apt-get update && sudo apt-get install -y liblcms2-dev
+      - name: Measure size & verify FFI compiles away
+        shell: bash
+        run: |
+          set -o pipefail
+          ./scripts/check-size.sh | tee size-report.md
+      - name: Publish report to job summary
+        if: always()
+        run: cat size-report.md >> "$GITHUB_STEP_SUMMARY"
