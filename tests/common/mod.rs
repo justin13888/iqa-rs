@@ -292,6 +292,50 @@ impl<F: PixelFormat> Metric<F> for PsnrLuma {
     }
 }
 
+/// SSIM in channel-averaged (`RgbAveraged`) mode.
+#[cfg(feature = "ssim")]
+pub struct SsimRgbAvg;
+
+#[cfg(feature = "ssim")]
+impl<F: PixelFormat> Metric<F> for SsimRgbAvg {
+    const NAME: &'static str = "ssim (rgb-averaged)";
+    const IDENTITY_SCORE: f64 = 1.0;
+    const HIGHER_IS_BETTER: bool = true;
+    const SYMMETRIC: bool = true;
+    const MIN_DIM: u32 = 11;
+    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa::Result<f64> {
+        iqa::ssim(
+            reference,
+            distorted,
+            iqa::SsimOptions {
+                mode: iqa::SsimMode::RgbAveraged,
+            },
+        )
+    }
+}
+
+/// SSIM in Rec.709 luma (`Luma709`) mode.
+#[cfg(feature = "ssim")]
+pub struct SsimLuma;
+
+#[cfg(feature = "ssim")]
+impl<F: PixelFormat> Metric<F> for SsimLuma {
+    const NAME: &'static str = "ssim (luma709)";
+    const IDENTITY_SCORE: f64 = 1.0;
+    const HIGHER_IS_BETTER: bool = true;
+    const SYMMETRIC: bool = true;
+    const MIN_DIM: u32 = 11;
+    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa::Result<f64> {
+        iqa::ssim(
+            reference,
+            distorted,
+            iqa::SsimOptions {
+                mode: iqa::SsimMode::Luma709,
+            },
+        )
+    }
+}
+
 /// SSIMULACRA2.
 #[cfg(feature = "ssimulacra2")]
 pub struct Ssim2;

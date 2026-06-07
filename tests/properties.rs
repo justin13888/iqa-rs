@@ -9,7 +9,7 @@
 // With no metric features enabled there is nothing to instantiate the suite
 // for, leaving the import and macro below genuinely unused.
 #![cfg_attr(
-    not(any(feature = "psnr", feature = "ssimulacra2")),
+    not(any(feature = "psnr", feature = "ssim", feature = "ssimulacra2")),
     allow(unused_imports, unused_macros)
 )]
 
@@ -41,6 +41,18 @@ mod psnr_rgb_averaged {
 mod psnr_luma709 {
     use super::*;
     property_matrix!(PsnrLuma, Srgb8, Srgb16, Gray8, Gray16, Rgba8, Rgba16);
+}
+
+#[cfg(feature = "ssim")]
+mod ssim_rgb_averaged {
+    use super::*;
+    property_matrix!(SsimRgbAvg, Srgb8, Srgb16, Gray8, Gray16, Rgba8, Rgba16);
+}
+
+#[cfg(feature = "ssim")]
+mod ssim_luma709 {
+    use super::*;
+    property_matrix!(SsimLuma, Srgb8, Srgb16, Gray8, Gray16, Rgba8, Rgba16);
 }
 
 // Every line below compiles only because the named format implements

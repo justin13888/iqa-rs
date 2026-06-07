@@ -73,6 +73,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         "dB  (higher is better)",
     );
     report(
+        "SSIM (RGB-averaged)",
+        iqa::ssim(&reference, &distorted, iqa::SsimOptions::default()),
+        "    (1.0 = identical)",
+    );
+    report(
         "SSIMULACRA2",
         iqa::ssimulacra2(&reference, &distorted),
         "    (100 = identical)",
