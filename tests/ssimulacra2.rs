@@ -9,7 +9,7 @@
 mod common;
 
 use common::*;
-use iqa_rs::{Error, ssimulacra2};
+use iqa::{Error, ssimulacra2};
 
 #[test]
 fn identical_image_scores_exactly_100() {

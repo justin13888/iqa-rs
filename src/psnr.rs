@@ -43,33 +43,33 @@ pub struct PsnrOptions {
 /// # Examples
 ///
 /// ```
-/// use iqa_rs::{Image, PsnrOptions, psnr};
+/// use iqa::{Image, PsnrOptions, psnr};
 ///
 /// let reference = Image::srgb8(2, 2, vec![10; 12])?;
 /// let distorted = Image::srgb8(2, 2, vec![12; 12])?;
 /// let score = psnr(&reference, &distorted, PsnrOptions::default())?;
 /// assert!(score > 0.0);
-/// # Ok::<(), iqa_rs::Error>(())
+/// # Ok::<(), iqa::Error>(())
 /// ```
 ///
 /// Comparing two different pixel formats does not type-check:
 ///
 /// ```compile_fail
-/// use iqa_rs::{Image, PsnrOptions, psnr};
+/// use iqa::{Image, PsnrOptions, psnr};
 ///
 /// let rgb = Image::srgb8(1, 1, vec![0, 0, 0])?;
 /// let gray = Image::gray8(1, 1, vec![0])?;
 /// let _ = psnr(&rgb, &gray, PsnrOptions::default()); // channel mismatch
-/// # Ok::<(), iqa_rs::Error>(())
+/// # Ok::<(), iqa::Error>(())
 /// ```
 ///
 /// ```compile_fail
-/// use iqa_rs::{Image, PsnrOptions, psnr};
+/// use iqa::{Image, PsnrOptions, psnr};
 ///
 /// let eight = Image::srgb8(1, 1, vec![0, 0, 0])?;
 /// let sixteen = Image::srgb16(1, 1, vec![0, 0, 0])?;
 /// let _ = psnr(&eight, &sixteen, PsnrOptions::default()); // bit-depth mismatch
-/// # Ok::<(), iqa_rs::Error>(())
+/// # Ok::<(), iqa::Error>(())
 /// ```
 pub fn psnr<F: PixelFormat>(
     reference: &Image<F>,

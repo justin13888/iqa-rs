@@ -1,4 +1,4 @@
-//! Compares two images with every metric `iqa-rs` provides.
+//! Compares two images with every metric `iqa` provides.
 //!
 //! Run it with two image files — PNG or JPEG, any size, color or grayscale:
 //!
@@ -6,20 +6,20 @@
 //! cargo run --release --example compare -- reference.png distorted.jpg
 //! ```
 //!
-//! `iqa-rs` deliberately does not decode image formats; that one job is left
+//! `iqa` deliberately does not decode image formats; that one job is left
 //! to the caller. This example shows the whole pipeline: the `image` crate
 //! decodes the files, and a few lines turn each decoded image into the
-//! `iqa_rs::Image` type the metrics consume.
+//! `iqa::Image` type the metrics consume.
 
 use std::error::Error;
 use std::ffi::OsString;
 use std::path::Path;
 
-use iqa_rs::{Image, PsnrMode, PsnrOptions, Srgb8};
+use iqa::{Image, PsnrMode, PsnrOptions, Srgb8};
 
-/// Decodes an image file and converts it into the `iqa-rs` input type.
+/// Decodes an image file and converts it into the `iqa` input type.
 ///
-/// This is the one conversion step `iqa-rs` leaves to the caller. The `image`
+/// This is the one conversion step `iqa` leaves to the caller. The `image`
 /// crate decodes the file; `to_rgb8()` normalizes whatever it found —
 /// grayscale, RGBA, 16-bit, palette — into 8-bit RGB; and `into_raw()` yields
 /// exactly the tightly packed, row-major sample buffer `Image::srgb8` expects.
@@ -58,12 +58,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     // error, which `report` prints below.
     report(
         "PSNR (RGB-averaged)",
-        iqa_rs::psnr(&reference, &distorted, PsnrOptions::default()),
+        iqa::psnr(&reference, &distorted, PsnrOptions::default()),
         "dB  (higher is better)",
     );
     report(
         "PSNR (Rec.709 luma)",
-        iqa_rs::psnr(
+        iqa::psnr(
             &reference,
             &distorted,
             PsnrOptions {
@@ -74,7 +74,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     );
     report(
         "SSIMULACRA2",
-        iqa_rs::ssimulacra2(&reference, &distorted),
+        iqa::ssimulacra2(&reference, &distorted),
         "    (100 = identical)",
     );
 
@@ -92,7 +92,7 @@ fn describe(role: &str, path: &OsString, image: &Image<Srgb8>) {
 }
 
 /// Prints one metric result, or the error explaining why it could not run.
-fn report(name: &str, result: iqa_rs::Result<f64>, unit: &str) {
+fn report(name: &str, result: iqa::Result<f64>, unit: &str) {
     match result {
         Ok(score) => println!("  {name:<22} {score:>9.3}  {unit}"),
         Err(error) => println!("  {name:<22}     error: {error}"),
