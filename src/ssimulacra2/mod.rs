@@ -49,24 +49,24 @@ impl Ssimulacra2Input for Rgba16 {}
 /// # Examples
 ///
 /// ```no_run
-/// use iqa_rs::{Image, ssimulacra2};
+/// use iqa::{Image, ssimulacra2};
 ///
 /// let reference = Image::srgb8(8, 8, vec![128; 192])?;
 /// let distorted = Image::srgb8(8, 8, vec![130; 192])?;
 /// let score = ssimulacra2(&reference, &distorted)?;
 /// assert!(score <= 100.0);
-/// # Ok::<(), iqa_rs::Error>(())
+/// # Ok::<(), iqa::Error>(())
 /// ```
 ///
 /// Comparing two different pixel formats does not type-check:
 ///
 /// ```compile_fail
-/// use iqa_rs::{Image, ssimulacra2};
+/// use iqa::{Image, ssimulacra2};
 ///
 /// let rgb = Image::srgb8(8, 8, vec![0; 192])?;
 /// let gray = Image::gray8(8, 8, vec![0; 64])?;
 /// let _ = ssimulacra2(&rgb, &gray); // mismatched formats
-/// # Ok::<(), iqa_rs::Error>(())
+/// # Ok::<(), iqa::Error>(())
 /// ```
 pub fn ssimulacra2<F: Ssimulacra2Input>(reference: &Image<F>, distorted: &Image<F>) -> Result<f64> {
     if reference.dimensions() != distorted.dimensions() {

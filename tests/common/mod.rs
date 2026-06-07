@@ -14,9 +14,9 @@
 // Each test crate that includes this module uses a different subset of it.
 #![allow(dead_code)]
 
-use iqa_rs::{Error, PixelFormat};
+use iqa::{Error, PixelFormat};
 
-pub use iqa_rs::{Gray8, Gray16, Image, Rgba8, Rgba16, Srgb8, Srgb16};
+pub use iqa::{Gray8, Gray16, Image, Rgba8, Rgba16, Srgb8, Srgb16};
 
 // ---------------------------------------------------------------------------
 // Sample-type helpers
@@ -245,7 +245,7 @@ pub trait Metric<F: PixelFormat> {
     /// Smallest width/height the metric accepts.
     const MIN_DIM: u32;
     /// Runs the metric.
-    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa_rs::Result<f64>;
+    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa::Result<f64>;
 }
 
 /// PSNR in channel-pooled (`RgbAveraged`) mode.
@@ -259,12 +259,12 @@ impl<F: PixelFormat> Metric<F> for PsnrRgbAvg {
     const HIGHER_IS_BETTER: bool = true;
     const SYMMETRIC: bool = true;
     const MIN_DIM: u32 = 1;
-    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa_rs::Result<f64> {
-        iqa_rs::psnr(
+    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa::Result<f64> {
+        iqa::psnr(
             reference,
             distorted,
-            iqa_rs::PsnrOptions {
-                mode: iqa_rs::PsnrMode::RgbAveraged,
+            iqa::PsnrOptions {
+                mode: iqa::PsnrMode::RgbAveraged,
             },
         )
     }
@@ -281,12 +281,12 @@ impl<F: PixelFormat> Metric<F> for PsnrLuma {
     const HIGHER_IS_BETTER: bool = true;
     const SYMMETRIC: bool = true;
     const MIN_DIM: u32 = 1;
-    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa_rs::Result<f64> {
-        iqa_rs::psnr(
+    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa::Result<f64> {
+        iqa::psnr(
             reference,
             distorted,
-            iqa_rs::PsnrOptions {
-                mode: iqa_rs::PsnrMode::Luma709,
+            iqa::PsnrOptions {
+                mode: iqa::PsnrMode::Luma709,
             },
         )
     }
@@ -297,15 +297,15 @@ impl<F: PixelFormat> Metric<F> for PsnrLuma {
 pub struct Ssim2;
 
 #[cfg(feature = "ssimulacra2")]
-impl<F: iqa_rs::Ssimulacra2Input> Metric<F> for Ssim2 {
+impl<F: iqa::Ssimulacra2Input> Metric<F> for Ssim2 {
     const NAME: &'static str = "ssimulacra2";
     const IDENTITY_SCORE: f64 = 100.0;
     const HIGHER_IS_BETTER: bool = true;
     // SSIMULACRA2 is deliberately asymmetric in reference vs distorted.
     const SYMMETRIC: bool = false;
     const MIN_DIM: u32 = 8;
-    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa_rs::Result<f64> {
-        iqa_rs::ssimulacra2(reference, distorted)
+    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa::Result<f64> {
+        iqa::ssimulacra2(reference, distorted)
     }
 }
 

@@ -1,12 +1,69 @@
-# iqa-rs
+# iqa
 
-`iqa-rs` provides a single, ergonomic API over the patchwork of visual quality assessment metrics available in the Rust ecosystem. It wraps existing crates where they exist and fills in the gaps where they don't, so you can compute PSNR, SSIMULACRA2, and friends without juggling a different type, color space, and pixel format for each one.
+[![Crates.io](https://img.shields.io/crates/v/iqa.svg)](https://crates.io/crates/iqa)
+[![Docs.rs](https://img.shields.io/docsrs/iqa)](https://docs.rs/iqa)
+[![CI](https://github.com/justin13888/iqa-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/justin13888/iqa-rs/actions/workflows/ci.yml)
+![License](https://img.shields.io/crates/l/iqa.svg)
+
+`iqa` provides a single, ergonomic API over the patchwork of visual quality assessment metrics available in the Rust ecosystem. It wraps existing crates where they exist and fills in the gaps where they don't, so you can compute PSNR, SSIMULACRA2, and friends without juggling a different type, color space, and pixel format for each one.
+
+## Installation
+
+```sh
+cargo add iqa
+```
+
+This pulls in every metric. Some (such as `ssimulacra2`) compile vendored C/C++
+and therefore need a C++ toolchain and the system `lcms2` library — see
+[Cargo features](#cargo-features) for the details. For a pure-Rust build with no
+system dependencies, disable the defaults and take just the metrics you need:
+
+```toml
+[dependencies]
+iqa = { version = "0.1", default-features = false, features = ["psnr"] }
+```
+
+## Quick start
+
+`iqa` consumes a tightly packed, row-major sample buffer and deliberately
+leaves image decoding to you (here, the [`image`](https://crates.io/crates/image)
+crate):
+
+```rust
+use iqa::{Image, PsnrOptions};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Decode however you like, then hand iqa the raw samples.
+    let reference = image::open("reference.png")?.to_rgb8();
+    let distorted = image::open("distorted.jpg")?.to_rgb8();
+
+    let (w, h) = reference.dimensions();
+    let reference = Image::srgb8(w, h, reference.into_raw())?;
+    let (w, h) = distorted.dimensions();
+    let distorted = Image::srgb8(w, h, distorted.into_raw())?;
+
+    // PSNR — pure Rust, always available.
+    let psnr = iqa::psnr(&reference, &distorted, PsnrOptions::default())?;
+    println!("PSNR:        {psnr:.3} dB");
+
+    // SSIMULACRA2 — requires the `ssimulacra2` feature; 100 = identical.
+    let ssimulacra2 = iqa::ssimulacra2(&reference, &distorted)?;
+    println!("SSIMULACRA2: {ssimulacra2:.3}");
+
+    Ok(())
+}
+```
+
+Both inputs must share one pixel format, so a color-space, channel, or bit-depth
+mismatch is a compile error rather than a meaningless score. See
+[`examples/compare.rs`](examples/compare.rs) for the full pipeline — run it with
+`cargo run --release --example compare -- reference.png distorted.jpg`.
 
 ## Metrics
 
 The table below tracks the planned metric set — the nine-metric full-reference core that covers essentially every published JXL/AVIF codec comparison from the last two years, plus LPIPS as a learned reference metric.
 
-The `Implementation` column points at the implementation `iqa-rs` is built on. We prefer porting or binding the upstream source implementation over reusing a Rust-specific reimplementation: cross-compilation is a requirement, but portability beyond that is not, so staying close to the reference keeps results faithful.
+The `Implementation` column points at the implementation `iqa` is built on. We prefer porting or binding the upstream source implementation over reusing a Rust-specific reimplementation: cross-compilation is a requirement, but portability beyond that is not, so staying close to the reference keeps results faithful.
 
 | IQA         | Implementation                                                                              | Status          |
 | ----------- | ------------------------------------------------------------------------------------------- | --------------- |
@@ -40,7 +97,7 @@ Each metric is gated behind its own Cargo feature:
 | `psnr`        | yes     | Native Rust; no system dependencies.                                |
 | `ssimulacra2` | yes     | Binds the vendored C++ reference; see the build requirements below. |
 
-**Every metric is enabled by default for convenience** — `cargo add iqa-rs`
+**Every metric is enabled by default for convenience** — `cargo add iqa`
 gets you the full set. Some metrics (such as `ssimulacra2`) bind native C/C++
 code and therefore need a C++ toolchain and system libraries to build.
 
@@ -50,25 +107,19 @@ metrics you need:
 ```toml
 [dependencies]
 # Pure-Rust subset only — no C/C++ toolchain required.
-iqa-rs = { version = "0.1", default-features = false, features = ["psnr"] }
+iqa = { version = "0.1", default-features = false, features = ["psnr"] }
 ```
 
 ### Building with `ssimulacra2`
 
 SSIMULACRA2 is bound via FFI to the original C++ reference rather than
-reimplemented, so enabling it (including via the default feature set) has extra
-requirements:
+reimplemented, so enabling it (including via the default feature set) needs a
+native build environment:
 
-1. **Submodules.** The C++ sources are vendored under `third_party/`:
-
-   ```sh
-   git submodule update --init --recursive
-   ```
-
-2. **A C++ toolchain.** `build.rs` compiles the reference with the `cc` crate,
+1. **A C++ toolchain.** `build.rs` compiles the reference with the `cc` crate,
    which uses `c++` by default (override with the `CXX` environment variable).
 
-3. **lcms2.** libjxl's color management needs the system `lcms2` library,
+2. **lcms2.** libjxl's color management needs the system `lcms2` library,
    located via `pkg-config`:
 
    ```sh
@@ -76,7 +127,18 @@ requirements:
    brew install little-cms2        # macOS / Homebrew
    ```
 
-Then build or test with the feature enabled:
+When you depend on `iqa` from crates.io that is all you need — the vendored
+C++ sources are packaged inside the published crate, so there are no submodules
+to fetch.
+
+**Building from a git checkout** (contributors) additionally needs those
+sources, which live under `third_party/` as git submodules:
+
+```sh
+git submodule update --init --recursive
+```
+
+Either way, build or test with the feature enabled:
 
 ```sh
 cargo test --features ssimulacra2

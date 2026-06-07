@@ -1,4 +1,4 @@
-//! `iqa-rs` provides a single, ergonomic API over the patchwork of visual
+//! `iqa` provides a single, ergonomic API over the patchwork of visual
 //! quality assessment metrics available in the Rust ecosystem.
 //!
 //! Every metric consumes the same [`Image<F>`](Image) type, parameterized by a

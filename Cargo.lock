@@ -98,7 +98,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "iqa-rs"
+name = "iqa"
 version = "0.1.0"
 dependencies = [
  "cc",

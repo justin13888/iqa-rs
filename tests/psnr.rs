@@ -9,7 +9,7 @@
 mod common;
 
 use common::*;
-use iqa_rs::{Error, PsnrMode, PsnrOptions, psnr};
+use iqa::{Error, PsnrMode, PsnrOptions, psnr};
 
 const RGB_AVERAGED: PsnrOptions = PsnrOptions {
     mode: PsnrMode::RgbAveraged,
