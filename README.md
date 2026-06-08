@@ -85,7 +85,7 @@ The `Implementation` column points at the implementation `iqa` is built on. We p
 | DSSIM       | Native implementation†                                                                      | Require testing |
 | XPSNR       | [fraunhoferhhi/xpsnr](https://github.com/fraunhoferhhi/xpsnr)                               | Planned         |
 | PSNR        | Native implementation                                                                       | Require testing |
-| PSNR-HVS-M  | [xiph/daala — `tools/psnrhvs.c`](https://github.com/xiph/daala/blob/master/tools/psnrhvs.c) | Planned         |
+| PSNR-HVS-M  | [xiph/daala — `tools/dump_psnrhvs.c`](https://github.com/xiph/daala/blob/master/tools/dump_psnrhvs.c) | Require testing |
 | SSIM        | Native implementation                                                                       | Require testing |
 | MS-SSIM     | [xiph/daala — `tools/ssim.c`](https://github.com/xiph/daala/blob/master/tools/ssim.c)       | Planned         |
 | CIEDE2000   | Native implementation                                                                       | Planned         |
@@ -123,6 +123,7 @@ Each metric is gated behind its own Cargo feature:
 | `psnr`           | yes     | Native Rust; no system dependencies.                                           |
 | `ssim`           | yes     | Native Rust; no system dependencies.                                           |
 | `dssim`          | yes     | Native Rust; structural dissimilarity `(1 - SSIM) / 2`. Enables `ssim`.        |
+| `psnr-hvs-m`     | yes     | Native Rust; DCT-domain PSNR with a CSF and contrast masking.                  |
 | `ssimulacra2`    | yes     | Binds the vendored C++ reference; see the build requirements below.            |
 | `butteraugli`    | yes     | Binds vendored libjxl C++; shares the same native build as `ssimulacra2`.       |
 | `vendored-lcms2` | yes     | Builds the `lcms2` dependency from vendored source — no system lib needed. Mutually exclusive with `system-lcms2`. |
