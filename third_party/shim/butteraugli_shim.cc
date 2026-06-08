@@ -32,6 +32,14 @@ jxl::ImageBundle MakeBundle(const jxl::ImageMetadata* metadata,
                             const float* rgb, unsigned width,
                             unsigned height) {
   jxl::Image3F color(width, height);
+  // Highway pads each row up to a SIMD-vector multiple; those trailing lanes
+  // are uninitialized at allocation. Butteraugli's convolutions use unaligned
+  // loads that touch them, so leaving them unset makes the score depend on
+  // whatever garbage the allocation happened to contain -- nondeterministic
+  // across builds, and only invisible when `width` is already vector-aligned
+  // (e.g. 64). Replicate the last real pixel across the padding (edge clamp) so
+  // every lane Butteraugli can read is defined and the boundary stays benign.
+  const size_t row_pixels = static_cast<size_t>(color.PixelsPerRow());
   for (unsigned y = 0; y < height; ++y) {
     float* r = color.PlaneRow(0, y);
     float* g = color.PlaneRow(1, y);
@@ -41,6 +49,11 @@ jxl::ImageBundle MakeBundle(const jxl::ImageMetadata* metadata,
       r[x] = src[x * 3 + 0];
       g[x] = src[x * 3 + 1];
       b[x] = src[x * 3 + 2];
+    }
+    for (size_t x = width; x < row_pixels; ++x) {
+      r[x] = r[width - 1];
+      g[x] = g[width - 1];
+      b[x] = b[width - 1];
     }
   }
   jxl::ImageBundle bundle(metadata);
