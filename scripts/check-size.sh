@@ -34,6 +34,7 @@ COMBOS=(
   "none|--no-default-features|pure"
   "psnr|--no-default-features --features psnr|pure"
   "ssim|--no-default-features --features ssim|pure"
+  "dssim|--no-default-features --features dssim|pure"
   "psnr+ssim|--no-default-features --features psnr,ssim|pure"
   "ssimulacra2|--no-default-features --features ssimulacra2,vendored-lcms2|ffi"
   "butteraugli|--no-default-features --features butteraugli,vendored-lcms2|ffi"

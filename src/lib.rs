@@ -19,6 +19,8 @@
 //! - `psnr` *(default)* — peak signal-to-noise ratio, a native implementation.
 //! - `ssim` *(default)* — structural similarity index (SSIM), a native
 //!   implementation.
+//! - `dssim` *(default)* — structural dissimilarity, `(1 - SSIM) / 2`, a native
+//!   implementation layered on `ssim` (which it enables).
 //! - `ssimulacra2` *(default)* — SSIMULACRA2, bound via FFI to the vendored
 //!   C++ reference. Enabling it requires the `third_party/` git submodules and
 //!   a C++ toolchain; see the project README.
@@ -44,6 +46,11 @@ pub use psnr::{PsnrMode, PsnrOptions, psnr};
 mod ssim;
 #[cfg(feature = "ssim")]
 pub use ssim::{SsimMode, SsimOptions, ssim};
+
+#[cfg(feature = "dssim")]
+mod dssim;
+#[cfg(feature = "dssim")]
+pub use dssim::{DssimOptions, dssim};
 
 #[cfg(feature = "ssimulacra2")]
 mod ssimulacra2;

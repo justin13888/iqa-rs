@@ -336,6 +336,52 @@ impl<F: PixelFormat> Metric<F> for SsimLuma {
     }
 }
 
+/// DSSIM in channel-averaged (`RgbAveraged`) mode.
+#[cfg(feature = "dssim")]
+pub struct DssimRgbAvg;
+
+#[cfg(feature = "dssim")]
+impl<F: PixelFormat> Metric<F> for DssimRgbAvg {
+    const NAME: &'static str = "dssim (rgb-averaged)";
+    // DSSIM = (1 - SSIM)/2: a perfect match is 0.0, and lower is better.
+    const IDENTITY_SCORE: f64 = 0.0;
+    const HIGHER_IS_BETTER: bool = false;
+    // DSSIM is a pure transform of SSIM, which is bit-exactly symmetric.
+    const SYMMETRIC: bool = true;
+    const MIN_DIM: u32 = 11;
+    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa::Result<f64> {
+        iqa::dssim(
+            reference,
+            distorted,
+            iqa::DssimOptions {
+                mode: iqa::SsimMode::RgbAveraged,
+            },
+        )
+    }
+}
+
+/// DSSIM in Rec.709 luma (`Luma709`) mode.
+#[cfg(feature = "dssim")]
+pub struct DssimLuma;
+
+#[cfg(feature = "dssim")]
+impl<F: PixelFormat> Metric<F> for DssimLuma {
+    const NAME: &'static str = "dssim (luma709)";
+    const IDENTITY_SCORE: f64 = 0.0;
+    const HIGHER_IS_BETTER: bool = false;
+    const SYMMETRIC: bool = true;
+    const MIN_DIM: u32 = 11;
+    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa::Result<f64> {
+        iqa::dssim(
+            reference,
+            distorted,
+            iqa::DssimOptions {
+                mode: iqa::SsimMode::Luma709,
+            },
+        )
+    }
+}
+
 /// SSIMULACRA2.
 #[cfg(feature = "ssimulacra2")]
 pub struct Ssim2;
