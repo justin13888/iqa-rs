@@ -12,6 +12,7 @@
     not(any(
         feature = "psnr",
         feature = "ssim",
+        feature = "dssim",
         feature = "ssimulacra2",
         feature = "butteraugli"
     )),
@@ -58,6 +59,18 @@ mod ssim_rgb_averaged {
 mod ssim_luma709 {
     use super::*;
     property_matrix!(SsimLuma, Srgb8, Srgb16, Gray8, Gray16, Rgba8, Rgba16);
+}
+
+#[cfg(feature = "dssim")]
+mod dssim_rgb_averaged {
+    use super::*;
+    property_matrix!(DssimRgbAvg, Srgb8, Srgb16, Gray8, Gray16, Rgba8, Rgba16);
+}
+
+#[cfg(feature = "dssim")]
+mod dssim_luma709 {
+    use super::*;
+    property_matrix!(DssimLuma, Srgb8, Srgb16, Gray8, Gray16, Rgba8, Rgba16);
 }
 
 // Every line below compiles only because the named format implements

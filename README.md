@@ -51,6 +51,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ssim = iqa::ssim(&reference, &distorted, SsimOptions::default())?;
     println!("SSIM:        {ssim:.3}");
 
+    // DSSIM — pure Rust; (1 - SSIM)/2, so 0.0 = identical and lower is better.
+    let dssim = iqa::dssim(&reference, &distorted, iqa::DssimOptions::default())?;
+    println!("DSSIM:       {dssim:.3}");
+
     // SSIMULACRA2 — requires the `ssimulacra2` feature; 100 = identical.
     let ssimulacra2 = iqa::ssimulacra2(&reference, &distorted)?;
     println!("SSIMULACRA2: {ssimulacra2:.3}");
@@ -78,7 +82,7 @@ The `Implementation` column points at the implementation `iqa` is built on. We p
 | ----------- | ------------------------------------------------------------------------------------------- | --------------- |
 | SSIMULACRA2 | [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2)                         | Require testing |
 | Butteraugli | [libjxl](https://github.com/libjxl/libjxl)                                                  | Stable and tested |
-| DSSIM       | [kornelski/dssim](https://github.com/kornelski/dssim)                                       | Planned         |
+| DSSIM       | Native implementation†                                                                      | Require testing |
 | XPSNR       | [fraunhoferhhi/xpsnr](https://github.com/fraunhoferhhi/xpsnr)                               | Planned         |
 | PSNR        | Native implementation                                                                       | Require testing |
 | PSNR-HVS-M  | [xiph/daala — `tools/psnrhvs.c`](https://github.com/xiph/daala/blob/master/tools/psnrhvs.c) | Planned         |
@@ -88,6 +92,13 @@ The `Implementation` column points at the implementation `iqa` is built on. We p
 | LPIPS       | [richzhang/PerceptualSimilarity](https://github.com/richzhang/PerceptualSimilarity)         | Not planned*    |
 
 *: LPIPS is Python implementation only.
+
+†: DSSIM is implemented as the classic structural-dissimilarity transform
+`(1 - SSIM) / 2` over the native SSIM (Wang et al. 2004). This is intentionally
+**not** [kornelski/dssim](https://github.com/kornelski/dssim)'s multi-scale
+L\*a\*b\* metric: that implementation is AGPL-licensed and defined only by its
+source, so it cannot be reproduced under this crate's permissive
+(MIT OR Apache-2.0) license. No numeric parity with it is implied.
 
 <!-- TODO: the links for xiph/daala are broken. I also suspect they don't have a good library implementation for them. -->
 
@@ -111,6 +122,7 @@ Each metric is gated behind its own Cargo feature:
 | ---------------- | ------- | ------------------------------------------------------------------------------ |
 | `psnr`           | yes     | Native Rust; no system dependencies.                                           |
 | `ssim`           | yes     | Native Rust; no system dependencies.                                           |
+| `dssim`          | yes     | Native Rust; structural dissimilarity `(1 - SSIM) / 2`. Enables `ssim`.        |
 | `ssimulacra2`    | yes     | Binds the vendored C++ reference; see the build requirements below.            |
 | `butteraugli`    | yes     | Binds vendored libjxl C++; shares the same native build as `ssimulacra2`.       |
 | `vendored-lcms2` | yes     | Builds the `lcms2` dependency from vendored source — no system lib needed. Mutually exclusive with `system-lcms2`. |

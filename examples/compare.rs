@@ -78,6 +78,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         "    (1.0 = identical)",
     );
     report(
+        "DSSIM (RGB-averaged)",
+        iqa::dssim(&reference, &distorted, iqa::DssimOptions::default()),
+        "    (0 = identical, lower is better)",
+    );
+    report(
         "SSIMULACRA2",
         iqa::ssimulacra2(&reference, &distorted),
         "    (100 = identical)",
