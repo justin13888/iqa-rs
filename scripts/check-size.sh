@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 #
 # check-size.sh — measure iqa's compiled footprint per feature combination and
-# verify the SSIMULACRA2 FFI dependency compiles away cleanly when its feature
-# is disabled.
+# verify the C++ FFI dependency compiles away cleanly when its features are
+# disabled.
 #
 # For every unique feature-flag combination it builds the library and reports:
 #   * the size of the compiled `libiqa.rlib`
 #   * the total bytes of native `.a` archives the build script emits (the
-#     `cc`-compiled libssimulacra2_shim.a + libhwy.a — see build.rs)
+#     `cc`-compiled libiqa_native.a + libhwy.a + liblcms2.a — see build.rs)
 #
 # It then enforces two hard invariants for every *pure-Rust* combo (anything
-# without `ssimulacra2`):
+# without `ssimulacra2` or `butteraugli`):
 #   1. zero native `.a` bytes — the FFI must contribute no compiled code, and
 #   2. neither `cc` nor `pkg-config` appears in the build-dependency graph.
 # A violation exits non-zero so CI can gate on it.
@@ -36,7 +36,8 @@ COMBOS=(
   "ssim|--no-default-features --features ssim|pure"
   "psnr+ssim|--no-default-features --features psnr,ssim|pure"
   "ssimulacra2|--no-default-features --features ssimulacra2,vendored-lcms2|ffi"
-  "all|--no-default-features --features psnr,ssim,ssimulacra2,vendored-lcms2|ffi"
+  "butteraugli|--no-default-features --features butteraugli,vendored-lcms2|ffi"
+  "all|--no-default-features --features psnr,ssim,ssimulacra2,butteraugli,vendored-lcms2|ffi"
 )
 
 # Total size in bytes of the given files. Missing paths contribute 0. Uses

@@ -9,7 +9,12 @@
 // With no metric features enabled there is nothing to instantiate the suite
 // for, leaving the import and macro below genuinely unused.
 #![cfg_attr(
-    not(any(feature = "psnr", feature = "ssim", feature = "ssimulacra2")),
+    not(any(
+        feature = "psnr",
+        feature = "ssim",
+        feature = "ssimulacra2",
+        feature = "butteraugli"
+    )),
     allow(unused_imports, unused_macros)
 )]
 
@@ -62,4 +67,12 @@ mod ssim_luma709 {
 mod ssimulacra2 {
     use super::*;
     property_matrix!(Ssim2, Srgb8, Srgb16, Gray8, Gray16, Rgba8, Rgba16);
+}
+
+// Like the ssimulacra2 block, every line compiles only because the named format
+// implements `ButteraugliInput`.
+#[cfg(feature = "butteraugli")]
+mod butteraugli {
+    use super::*;
+    property_matrix!(Butteraugli, Srgb8, Srgb16, Gray8, Gray16, Rgba8, Rgba16);
 }

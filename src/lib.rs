@@ -21,7 +21,9 @@
 //!   implementation.
 //! - `ssimulacra2` *(default)* — SSIMULACRA2, bound via FFI to the vendored
 //!   C++ reference. Enabling it requires the `third_party/` git submodules and
-//!   a system `lcms2`; see the project README.
+//!   a C++ toolchain; see the project README.
+//! - `butteraugli` *(default)* — Butteraugli, bound via FFI to libjxl's
+//!   vendored C++. Shares the same native build as `ssimulacra2`.
 
 #![deny(missing_docs)]
 
@@ -47,3 +49,8 @@ pub use ssim::{SsimMode, SsimOptions, ssim};
 mod ssimulacra2;
 #[cfg(feature = "ssimulacra2")]
 pub use ssimulacra2::{Ssimulacra2Input, ssimulacra2};
+
+#[cfg(feature = "butteraugli")]
+mod butteraugli;
+#[cfg(feature = "butteraugli")]
+pub use butteraugli::{ButteraugliInput, ButteraugliOptions, butteraugli};

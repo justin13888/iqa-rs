@@ -28,6 +28,10 @@ pub enum Error {
     /// The native SSIMULACRA2 implementation reported a failure.
     #[error("ssimulacra2 computation failed")]
     Ssimulacra2Failed,
+
+    /// The native Butteraugli implementation reported a failure.
+    #[error("butteraugli computation failed")]
+    ButteraugliFailed,
 }
 
 /// Convenience alias for results returned by this crate.

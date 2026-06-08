@@ -353,6 +353,24 @@ impl<F: iqa::Ssimulacra2Input> Metric<F> for Ssim2 {
     }
 }
 
+/// Butteraugli (default options: 3-norm pooling).
+#[cfg(feature = "butteraugli")]
+pub struct Butteraugli;
+
+#[cfg(feature = "butteraugli")]
+impl<F: iqa::ButteraugliInput> Metric<F> for Butteraugli {
+    const NAME: &'static str = "butteraugli";
+    // A perfect match is distance zero, and lower is better.
+    const IDENTITY_SCORE: f64 = 0.0;
+    const HIGHER_IS_BETTER: bool = false;
+    // Butteraugli's masking is computed from the reference, so it is asymmetric.
+    const SYMMETRIC: bool = false;
+    const MIN_DIM: u32 = 8;
+    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa::Result<f64> {
+        iqa::butteraugli(reference, distorted, iqa::ButteraugliOptions::default())
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Score comparison helpers
 // ---------------------------------------------------------------------------

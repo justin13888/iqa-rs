@@ -55,6 +55,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ssimulacra2 = iqa::ssimulacra2(&reference, &distorted)?;
     println!("SSIMULACRA2: {ssimulacra2:.3}");
 
+    // Butteraugli — requires the `butteraugli` feature; 0 = identical, lower is better.
+    let butteraugli = iqa::butteraugli(&reference, &distorted, iqa::ButteraugliOptions::default())?;
+    println!("Butteraugli: {butteraugli:.3}");
+
     Ok(())
 }
 ```
@@ -73,7 +77,7 @@ The `Implementation` column points at the implementation `iqa` is built on. We p
 | IQA         | Implementation                                                                              | Status          |
 | ----------- | ------------------------------------------------------------------------------------------- | --------------- |
 | SSIMULACRA2 | [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2)                         | Require testing |
-| Butteraugli | [libjxl](https://github.com/libjxl/libjxl)                                                  | Planned         |
+| Butteraugli | [libjxl](https://github.com/libjxl/libjxl)                                                  | Require testing |
 | DSSIM       | [kornelski/dssim](https://github.com/kornelski/dssim)                                       | Planned         |
 | XPSNR       | [fraunhoferhhi/xpsnr](https://github.com/fraunhoferhhi/xpsnr)                               | Planned         |
 | PSNR        | Native implementation                                                                       | Require testing |
@@ -102,6 +106,7 @@ Each metric is gated behind its own Cargo feature:
 | `psnr`           | yes     | Native Rust; no system dependencies.                                           |
 | `ssim`           | yes     | Native Rust; no system dependencies.                                           |
 | `ssimulacra2`    | yes     | Binds the vendored C++ reference; see the build requirements below.            |
+| `butteraugli`    | yes     | Binds vendored libjxl C++; shares the same native build as `ssimulacra2`.       |
 | `vendored-lcms2` | yes     | Builds the `lcms2` dependency from vendored source — no system lib needed. Mutually exclusive with `system-lcms2`. |
 | `system-lcms2`   | no      | Links a system `lcms2` via `pkg-config` instead. Mutually exclusive with `vendored-lcms2` — enable exactly one. |
 
@@ -118,11 +123,11 @@ metrics you need:
 iqa = { version = "0.1", default-features = false, features = ["psnr"] }
 ```
 
-### Building with `ssimulacra2`
+### Building the C++ metrics (`ssimulacra2`, `butteraugli`)
 
-SSIMULACRA2 is bound via FFI to the original C++ reference rather than
-reimplemented, so enabling it (including via the default feature set) needs a
-native build environment:
+SSIMULACRA2 and Butteraugli are bound via FFI to their original libjxl-derived
+C++ rather than reimplemented, and share one native build. Enabling either
+(including via the default feature set) needs a native build environment:
 
 1. **A C++ toolchain.** `build.rs` compiles the reference with the `cc` crate,
    which uses `c++` by default (override with the `CXX` environment variable).
@@ -157,10 +162,13 @@ sources, which live under `third_party/` as git submodules (`ssimulacra2`,
 git submodule update --init --recursive
 ```
 
+Butteraugli's extra libjxl sources are hand-vendored directly under
+`third_party/butteraugli/` (see its README), so they need no submodule fetch.
+
 Either way, build or test with the feature enabled:
 
 ```sh
-cargo test --features ssimulacra2
+cargo test --features ssimulacra2,butteraugli
 ```
 
 ## Development
@@ -192,7 +200,7 @@ The pre-push hook runs the full test suite.
 
 `just size` builds the library under every unique feature combination and prints
 the compiled footprint of each, plus the published-crate size. It also enforces
-that the `ssimulacra2` FFI **compiles away cleanly**: every pure-Rust combo must
+that the C++ FFI **compiles away cleanly**: every pure-Rust combo must
 link zero native code and pull neither `cc` nor `pkg-config` into its build
 graph. A violation exits non-zero. The same check runs weekly (and on any PR that
 touches `Cargo.toml`, `build.rs`, `third_party/`, or the script) via the `Size`

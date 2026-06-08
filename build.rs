@@ -1,37 +1,39 @@
 //! Build script.
 //!
-//! With default features this does nothing: the `psnr` metric is pure Rust, so
-//! no C or C++ compiler is invoked. When the `ssimulacra2` feature is enabled
-//! it compiles the vendored C++ reference (see `mod ssimulacra2` below).
+//! With only the pure-Rust metrics (`psnr`, `ssim`) this does nothing: no C or
+//! C++ compiler is invoked. When `ssimulacra2` or `butteraugli` is enabled it
+//! compiles the vendored libjxl C++ subset they share (see `mod native`).
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
 
-    #[cfg(feature = "ssimulacra2")]
-    ssimulacra2::build();
+    #[cfg(any(feature = "ssimulacra2", feature = "butteraugli"))]
+    native::build();
 }
 
-/// Compiles the vendored SSIMULACRA2 C++ reference.
+/// Compiles the vendored C++ that `ssimulacra2` and `butteraugli` bind to.
 ///
-/// This module is only compiled when the `ssimulacra2` feature is enabled, so
-/// the `cc` and `pkg-config` build-dependencies stay out of the graph for a
-/// default build.
-#[cfg(feature = "ssimulacra2")]
-mod ssimulacra2 {
+/// Both metrics are bound via FFI to libjxl-derived C++ rather than
+/// reimplemented; they share the same libjxl subset, Highway, and lcms2, so
+/// those are compiled once here and the metric-specific sources are added per
+/// feature. This module is only compiled when at least one of the two features
+/// is enabled, so `cc` and `pkg-config` stay out of a pure-Rust build's graph.
+#[cfg(any(feature = "ssimulacra2", feature = "butteraugli"))]
+mod native {
     use std::path::{Path, PathBuf};
     use std::{env, fs};
 
-    // SSIMULACRA2's color management needs exactly one lcms2 backend. Cargo
-    // features are additive, so a plain pair of flags could be both enabled
-    // (e.g. `--all-features`) or both disabled; neither is a valid build.
-    // These guards make the choice a structural XOR: enable exactly one.
+    // The libjxl color management both metrics use needs exactly one lcms2
+    // backend. Cargo features are additive, so a plain pair of flags could be
+    // both enabled (e.g. `--all-features`) or both disabled; neither is a valid
+    // build. These guards make the choice a structural XOR: enable exactly one.
     #[cfg(all(feature = "vendored-lcms2", feature = "system-lcms2"))]
     compile_error!(
         "features `vendored-lcms2` and `system-lcms2` are mutually exclusive: enable exactly one"
     );
     #[cfg(not(any(feature = "vendored-lcms2", feature = "system-lcms2")))]
     compile_error!(
-        "the `ssimulacra2` feature needs an lcms2 backend: enable exactly one of \
+        "the `ssimulacra2`/`butteraugli` metrics need an lcms2 backend: enable exactly one of \
          `vendored-lcms2` or `system-lcms2`"
     );
 
@@ -61,6 +63,23 @@ mod ssimulacra2 {
         "timer.cc",
     ];
 
+    /// Butteraugli sources libjxl's `jxl.cmake` subset does not list. These are
+    /// hand-vendored under `third_party/butteraugli/` (see its README); paths
+    /// are relative to that root and mirror libjxl's `lib/` layout so the
+    /// subset's `#include "lib/jxl/..."` resolve unchanged.
+    #[cfg(feature = "butteraugli")]
+    const BUTTERAUGLI_SOURCES: &[&str] = &[
+        "lib/jxl/convolve_separable5.cc",
+        "lib/jxl/convolve_separable7.cc",
+        "lib/jxl/convolve_slow.cc",
+        "lib/jxl/convolve_symmetric3.cc",
+        "lib/jxl/convolve_symmetric5.cc",
+        "lib/jxl/butteraugli/butteraugli.cc",
+        "lib/jxl/enc_butteraugli_comparator.cc",
+        "lib/jxl/enc_butteraugli_pnorm.cc",
+        "lib/jxl/enc_comparator.cc",
+    ];
+
     pub fn build() {
         let manifest = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
         let out = PathBuf::from(env::var("OUT_DIR").unwrap());
@@ -71,9 +90,23 @@ mod ssimulacra2 {
         let highway = third_party.join("highway");
         let lcms2 = third_party.join("lcms2");
         let shim = third_party.join("shim");
+        #[cfg(feature = "butteraugli")]
+        let butteraugli = third_party.join("butteraugli");
 
-        assert_submodule(&s2_src.join("ssimulacra2.cc"), "ssimulacra2");
+        // The libjxl subset (in the ssimulacra2 submodule) and Highway are
+        // needed by both metrics; assert on a shared subset header rather than
+        // on ssimulacra2.cc.
+        assert_submodule(&s2_lib.join("jxl/image.h"), "ssimulacra2");
         assert_submodule(&highway.join("hwy/highway.h"), "highway");
+        #[cfg(feature = "ssimulacra2")]
+        assert_submodule(&s2_src.join("ssimulacra2.cc"), "ssimulacra2");
+        #[cfg(feature = "butteraugli")]
+        assert!(
+            butteraugli
+                .join("lib/jxl/butteraugli/butteraugli.cc")
+                .exists(),
+            "third_party/butteraugli is missing its vendored libjxl sources",
+        );
 
         for path in [&third_party, &shim] {
             println!("cargo:rerun-if-changed={}", path.display());
@@ -85,9 +118,9 @@ mod ssimulacra2 {
         fs::create_dir_all(&export_dir).expect("create OUT_DIR/jxl");
         fs::write(export_dir.join("jxl_export.h"), JXL_EXPORT_H).expect("write jxl_export.h");
 
-        // The libjxl subset + ssimulacra2.cc + our shim, as one archive.
-        // Compiled before highway/lcms2 so the static-link order resolves
-        // dependencies left-to-right.
+        // The libjxl subset + each enabled metric's sources + our shims, as one
+        // archive. Compiled before highway/lcms2 so the static-link order
+        // resolves dependencies left-to-right.
         let mut jxl = base_build();
         jxl.include(&s2_src) // resolves "lib/jxl/..." and "ssimulacra2.h"
             .include(s2_lib.join("include")) // resolves "jxl/cms_interface.h"
@@ -99,18 +132,41 @@ mod ssimulacra2 {
             .define("JPEGXL_PATCH_VERSION", "0")
             .define("JXL_INTERNAL_LIBRARY_BUILD", None);
 
+        // The vendored butteraugli root resolves the few extra "lib/jxl/..."
+        // headers (convolve-inl.h, the butteraugli + comparator headers) the
+        // subset omits. Its file set is disjoint from the subset, so the two
+        // "lib/jxl" roots compose: shared headers resolve from the subset.
+        #[cfg(feature = "butteraugli")]
+        jxl.include(&butteraugli);
+
         // lcms2 headers for the jxl color-management sources. Vendored by
         // default; the system path returns pkg-config's include dirs instead.
         for dir in lcms2_include_dirs(&lcms2) {
             jxl.include(dir);
         }
 
+        // The shared libjxl subset (needed by both metrics).
         for src in jxl_cmake_sources(&s2_lib.join("jxl.cmake")) {
             jxl.file(s2_lib.join(src));
         }
-        jxl.file(s2_src.join("ssimulacra2.cc"));
-        jxl.file(shim.join("ssimulacra2_shim.cc"));
-        jxl.compile("ssimulacra2_shim");
+
+        // ssimulacra2-specific sources + its shim.
+        #[cfg(feature = "ssimulacra2")]
+        {
+            jxl.file(s2_src.join("ssimulacra2.cc"));
+            jxl.file(shim.join("ssimulacra2_shim.cc"));
+        }
+
+        // butteraugli-specific sources + its shim.
+        #[cfg(feature = "butteraugli")]
+        {
+            for src in BUTTERAUGLI_SOURCES {
+                jxl.file(butteraugli.join(src));
+            }
+            jxl.file(shim.join("butteraugli_shim.cc"));
+        }
+
+        jxl.compile("iqa_native");
 
         // Highway, then lcms2: emitted after the archive that needs them.
         let mut hwy = base_build();
