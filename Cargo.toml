@@ -12,17 +12,22 @@ documentation = "https://docs.rs/iqa"
 # Minimum supported Rust version. 1.85 is the edition-2024 baseline.
 rust-version = "1.85"
 build = "build.rs"
-links = "ssimulacra2"
+# Build-uniqueness key for the shared native archive (libjxl subset + Highway +
+# lcms2) that `ssimulacra2` and `butteraugli` both link.
+links = "iqa_native"
 
 [features]
 # All metrics are enabled by default for convenience. Depend on iqa with
 # `default-features = false` and opt into exactly the metrics you need to keep
 # the build pure-Rust (see the README).
-default = ["psnr", "ssim", "ssimulacra2", "vendored-lcms2"]
+default = ["psnr", "ssim", "ssimulacra2", "butteraugli", "vendored-lcms2"]
 psnr = []
 ssim = []
 ssimulacra2 = ["dep:cc"]
-# lcms2 backend for ssimulacra2's color management. Mutually exclusive: enable
+# Butteraugli, also bound to vendored libjxl C++; shares the native build (and
+# therefore the lcms2 backend) with `ssimulacra2`.
+butteraugli = ["dep:cc"]
+# lcms2 backend for the C++ metrics' color management. Mutually exclusive: enable
 # exactly one (build.rs enforces the XOR with `compile_error!`). `vendored-lcms2`
 # builds the library from the `third_party/lcms2` submodule (default, no system
 # dependency); `system-lcms2` links a system lcms2 via pkg-config instead. Note
@@ -44,11 +49,11 @@ image = { version = "0.25", default-features = false, features = ["png", "jpeg"]
 
 [[example]]
 name = "compare"
-required-features = ["psnr", "ssim", "ssimulacra2"]
+required-features = ["psnr", "ssim", "ssimulacra2", "butteraugli"]
 
 [package.metadata.docs.rs]
-# Document every metric (including ssimulacra2) on docs.rs, matching the default
+# Document every metric (including the C++ ones) on docs.rs, matching the default
 # build. The lcms2 backends are mutually exclusive, so `all-features` is not a
 # valid build; name the metric set explicitly and pin the vendored backend so
 # docs.rs needs no system library (the vendored C++ ships in the published crate).
-features = ["psnr", "ssim", "ssimulacra2", "vendored-lcms2"]
+features = ["psnr", "ssim", "ssimulacra2", "butteraugli", "vendored-lcms2"]

@@ -82,6 +82,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         iqa::ssimulacra2(&reference, &distorted),
         "    (100 = identical)",
     );
+    report(
+        "Butteraugli",
+        iqa::butteraugli(&reference, &distorted, iqa::ButteraugliOptions::default()),
+        "    (0 = identical, lower is better)",
+    );
 
     Ok(())
 }

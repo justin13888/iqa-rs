@@ -25,11 +25,11 @@ jobs:
       - name: Format check
         run: cargo fmt --check
       - name: Lint
-        run: cargo clippy --all-targets --no-default-features --features psnr,ssim,ssimulacra2,vendored-lcms2 -- -D warnings
+        run: cargo clippy --all-targets --no-default-features --features psnr,ssim,ssimulacra2,butteraugli,vendored-lcms2 -- -D warnings
       - name: Test (vendored lcms2 backend)
-        run: cargo test --no-default-features --features psnr,ssim,ssimulacra2,vendored-lcms2
+        run: cargo test --no-default-features --features psnr,ssim,ssimulacra2,butteraugli,vendored-lcms2
       - name: Test (system lcms2 backend)
-        run: cargo test --no-default-features --features psnr,ssim,ssimulacra2,system-lcms2
+        run: cargo test --no-default-features --features psnr,ssim,ssimulacra2,butteraugli,system-lcms2
 
   minimal:
     name: Test (pure-Rust subset)
@@ -54,9 +54,9 @@ jobs:
       - name: Install lcms2
         run: sudo apt-get update && sudo apt-get install -y liblcms2-dev
       - name: Generate coverage report
-        run: cargo llvm-cov --no-default-features --features psnr,ssim,ssimulacra2,vendored-lcms2 --lcov --output-path lcov.info
+        run: cargo llvm-cov --no-default-features --features psnr,ssim,ssimulacra2,butteraugli,vendored-lcms2 --lcov --output-path lcov.info
       - name: Generate coverage summary
-        run: cargo llvm-cov --no-default-features --features psnr,ssim,ssimulacra2,vendored-lcms2 report --summary-only
+        run: cargo llvm-cov --no-default-features --features psnr,ssim,ssimulacra2,butteraugli,vendored-lcms2 report --summary-only
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
