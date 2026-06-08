@@ -218,6 +218,29 @@ Releases are automated with [release-plz](https://release-plz.dev) and driven by
 [Conventional Commits](https://www.conventionalcommits.org): the commit messages
 landed on `master` decide the next version number and fill in `CHANGELOG.md`.
 
+#### How release-plz picks the next version
+
+release-plz scans every commit landed since the last release tag, maps each to a
+bump from its Conventional Commit type, and applies the **largest** bump any one
+of them implies. The version in the open release PR therefore reflects everything
+accumulated on `master` since the last release, and rises as more commits land.
+
+While the crate is pre-1.0 (`0.y.z`) the bumps are deliberately conservative —
+following Cargo's compatibility rules, the *minor* slot plays the role of "major",
+so a breaking change moves `0.1.z → 0.2.0` rather than `1.0.0`:
+
+| Highest-ranked commit on `master`           | Bump while pre-1.0 (`0.y.z`) | Bump once `≥ 1.0.0` |
+| ------------------------------------------- | ---------------------------- | ------------------- |
+| `feat!:` / `fix!:` / any `BREAKING CHANGE:` | minor (`0.1.1 → 0.2.0`)      | major               |
+| `feat:`                                     | patch (`0.1.1 → 0.1.2`)      | minor               |
+| `fix:`                                      | patch (`0.1.1 → 0.1.2`)      | patch               |
+| `docs:`, `chore:`, `test:`, `refactor:`, …  | patch (`0.1.1 → 0.1.2`)      | patch               |
+
+The practical consequence: while the crate is still `0.1.z`, a plain `feat:` does
+**not** reach `0.2.0` — only a breaking-change commit (`feat!:` or a
+`BREAKING CHANGE:` footer) bumps the minor. This is why `0.1.1` shipped three new
+metrics as a patch rather than a minor release.
+
 To cut a release:
 
 1. Land changes on `master` with Conventional Commit messages (`feat:`, `fix:`,
