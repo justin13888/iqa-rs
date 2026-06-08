@@ -77,7 +77,7 @@ The `Implementation` column points at the implementation `iqa` is built on. We p
 | IQA         | Implementation                                                                              | Status          |
 | ----------- | ------------------------------------------------------------------------------------------- | --------------- |
 | SSIMULACRA2 | [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2)                         | Require testing |
-| Butteraugli | [libjxl](https://github.com/libjxl/libjxl)                                                  | Require testing |
+| Butteraugli | [libjxl](https://github.com/libjxl/libjxl)                                                  | Stable and tested |
 | DSSIM       | [kornelski/dssim](https://github.com/kornelski/dssim)                                       | Planned         |
 | XPSNR       | [fraunhoferhhi/xpsnr](https://github.com/fraunhoferhhi/xpsnr)                               | Planned         |
 | PSNR        | Native implementation                                                                       | Require testing |
@@ -96,6 +96,12 @@ The `Implementation` column points at the implementation `iqa` is built on. We p
 - **Planned** — selected for implementation, not yet started.
 - **Require testing** — implemented, but not yet validated against reference outputs.
 - **Stable and tested** — implemented and verified against the reference implementation.
+
+Butteraugli is cross-validated numerically: `tests/butteraugli_reference.rs`
+checks `iqa::butteraugli` against the exact distances libjxl's own
+`butteraugli_main` (v0.8.2, the vendored version) produces on the same pixels —
+matching to the reference tool's printed precision. `scripts/gen-butteraugli-goldens.sh`
+rebuilds those reference values from source.
 
 ## Cargo features
 
