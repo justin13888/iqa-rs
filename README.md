@@ -85,7 +85,7 @@ The `Implementation` column points at the implementation `iqa` is built on. We p
 | DSSIM       | Native implementation†                                                                      | Require testing |
 | XPSNR       | [fraunhoferhhi/xpsnr](https://github.com/fraunhoferhhi/xpsnr)                               | Planned         |
 | PSNR        | Native implementation                                                                       | Require testing |
-| PSNR-HVS-M  | [xiph/daala — `tools/dump_psnrhvs.c`](https://github.com/xiph/daala/blob/master/tools/dump_psnrhvs.c) | Require testing |
+| PSNR-HVS-M  | [Ponomarenko `psnrhvsm.m`](https://www.ponomarenko.info/psnrhvsm.htm) | Stable and tested |
 | SSIM        | Native implementation                                                                       | Require testing |
 | MS-SSIM     | [xiph/daala — `tools/ssim.c`](https://github.com/xiph/daala/blob/master/tools/ssim.c)       | Planned         |
 | CIEDE2000   | Native implementation                                                                       | Planned         |
@@ -113,6 +113,12 @@ checks `iqa::butteraugli` against the exact distances libjxl's own
 `butteraugli_main` (v0.8.2, the vendored version) produces on the same pixels —
 matching to the reference tool's printed precision. `scripts/gen-butteraugli-goldens.sh`
 rebuilds those reference values from source.
+
+PSNR-HVS-M is cross-validated the same way: `tests/psnr_hvs_m_reference.rs` pins
+`iqa::psnr_hvs_m` against Ponomarenko's original `psnrhvsm.m` run on the same
+grayscale fixtures (`scripts/gen-psnrhvs-goldens.sh`, via Octave) — matching
+exactly — with an independent NumPy reimplementation (`gen-psnrhvs-goldens.py`)
+as a no-Octave cross-check.
 
 ## Cargo features
 

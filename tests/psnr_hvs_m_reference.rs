@@ -7,20 +7,14 @@
 //! masking threshold applied to the wrong coefficients — moves the number out of
 //! band and fails here.
 //!
-//! The committed [`GOLDENS`] are produced by `scripts/gen-psnrhvs-goldens.py`, an
-//! **independent NumPy reimplementation** of the reference `psnrhvsm.m`
-//! (Ponomarenko et al. 2007 — the same algorithm Daala's `tools/dump_psnrhvs.c`
-//! ports). It is written from that reference — a different language, its own
-//! DCT, and the textbook `N-1` variance the reference's `var` uses — so
-//! agreement is real evidence, not a restatement of our own arithmetic. The
-//! fixtures are **grayscale**, so the luma path has no color-conversion freedom
-//! and a single plane is compared.
-//!
-//! TODO(authoritative): re-pin these values against the Daala `dump_psnrhvs`
-//! binary itself. That build is autotools-based (needs `autoconf`/`automake`,
-//! plus `ffmpeg` to wrap the grayscale fixtures as luma Y4M); the recipe lives
-//! in the header of `scripts/gen-psnrhvs-goldens.py`. Until then the PSNR-HVS-M
-//! row in the README stays "Require testing".
+//! The committed [`GOLDENS`] are produced by `scripts/gen-psnrhvs-goldens.sh`,
+//! which runs the **original reference implementation** — Ponomarenko's
+//! `psnrhvsm.m` — under Octave on these exact fixtures. `iqa::psnr_hvs_m` is a
+//! direct port of that script, so this pins our output to the canonical source
+//! of truth, not a paraphrase of it. `scripts/gen-psnrhvs-goldens.py` is an
+//! independent NumPy reimplementation kept as a no-Octave cross-check; it
+//! reproduces the same values. The fixtures are **grayscale**, so the luma path
+//! has no color-conversion freedom and a single plane is compared.
 //!
 //! Fixtures are written by the `#[ignore]`d [`write_psnr_hvs_m_fixtures`] below;
 //! if you regenerate them you must regenerate the goldens too.
@@ -45,8 +39,8 @@ const CASES: &[(&str, &str, &str)] = &[
     ("texture_dist", "texture_ref.pgm", "texture_dist.pgm"),
 ];
 
-/// Independent PSNR-HVS-M (dB) from `scripts/gen-psnrhvs-goldens.py`.
-/// Regenerate with that script after changing the fixtures.
+/// PSNR-HVS-M (dB) from the reference `psnrhvsm.m`, via
+/// `scripts/gen-psnrhvs-goldens.sh`. Regenerate after changing the fixtures.
 const GOLDENS: &[(&str, f64)] = &[
     ("gradient_lo", 38.018849),
     ("gradient_hi", 23.581020),
@@ -72,9 +66,9 @@ fn matches_reference_psnr_hvs_m() {
         let golden = golden(label);
 
         // 1% relative + a small absolute floor, matching the butteraugli
-        // cross-check: enough slack for cross-implementation float divergence
-        // (and a future re-pin against the Daala binary), far tighter than the
-        // tens-of-percent a real algorithm bug would cause.
+        // cross-check: enough slack for cross-target float divergence, far
+        // tighter than the tens-of-percent a real algorithm bug would cause.
+        // (On the generating host our output matches the reference exactly.)
         let tol = 1e-3 + 0.01 * golden.abs();
         let delta = (ours - golden).abs();
         eprintln!("{label}: ours={ours:.6} reference={golden:.6} (Δ={delta:.6})");

@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 #
-# gen-psnrhvs-goldens.py — regenerate the reference values that
-# tests/psnr_hvs_m_reference.rs checks `iqa::psnr_hvs_m` against.
+# gen-psnrhvs-goldens.py — a no-dependency cross-check of the PSNR-HVS-M goldens.
 #
-# This is an INDEPENDENT NumPy reimplementation of the reference psnrhvsm.m
-# (Ponomarenko et al. 2007) — the same algorithm Daala's tools/dump_psnrhvs.c
-# ports. It is written from that reference (its CSFCof/MaskCof tables, its
-# maskeff with the N-1 sample variance MATLAB's `var` uses, its DC-exempt
-# masking threshold, and the 255^2/MSE dB conversion), separately from the Rust,
-# so agreement is real evidence the port is correct rather than a restatement.
+# The AUTHORITATIVE goldens come from `scripts/gen-psnrhvs-goldens.sh`, which runs
+# the original reference `psnrhvsm.m` (Ponomarenko et al. 2007) under Octave. This
+# script is an INDEPENDENT NumPy reimplementation of that same algorithm (its
+# CSFCof/MaskCof tables, its maskeff with the N-1 sample variance MATLAB's `var`
+# uses, its DC-exempt masking threshold, and the 255^2/MSE dB conversion), written
+# separately from both the Rust and the .m. It exists so the goldens can be
+# re-derived without Octave and so a third implementation has to agree — it
+# reproduces the reference values exactly.
 #
 # It reads the committed grayscale PGM fixtures and prints the Rust `GOLDENS`
 # table to paste into tests/psnr_hvs_m_reference.rs.
@@ -18,24 +19,6 @@
 # Regenerate the fixtures first if they changed:
 #   cargo test --features psnr-hvs-m --test psnr_hvs_m_reference \
 #       write_psnr_hvs_m_fixtures -- --ignored
-#
-# ---------------------------------------------------------------------------
-# Authoritative re-pin (TODO): the canonical oracle is Daala's own dump_psnrhvs
-# binary. Daala builds with autotools and the tool consumes Y4M, so the recipe
-# is, roughly:
-#
-#   git clone https://github.com/xiph/daala && cd daala
-#   git checkout <PINNED_COMMIT>          # pin and record the commit here
-#   ./autogen.sh && ./configure && make tools/dump_psnrhvs
-#   ffmpeg -i tests/fixtures/psnr_hvs_m/<f>.pgm -pix_fmt yuv420p -f yuv4mpegpipe <f>.y4m
-#   tools/dump_psnrhvs <ref>.y4m <dist>.y4m   # read the Y/luma PSNR-HVS it prints
-#
-# Doing this needs autoconf/automake + ffmpeg, which were unavailable where the
-# current values were generated. (Note Daala's csf_y differs slightly from
-# Ponomarenko's CSFCof and Daala uses its own integer DCT, so a re-pin may shift
-# values within the test's tolerance band.) Once re-pinned, update this header
-# and flip the README PSNR-HVS-M row to "Stable and tested".
-# ---------------------------------------------------------------------------
 
 import os
 import sys
