@@ -1,5 +1,9 @@
 target/
 .DS_Store
 
+# cargo-mutants output (mutation-testing run artifacts).
+mutants.out/
+mutants.out.old/
+
 # Scratch image for running the `compare` example; not part of the crate.
 /test.jpg

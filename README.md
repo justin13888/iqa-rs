@@ -103,7 +103,7 @@ The `Implementation` column points at the implementation `iqa` is built on. We p
 | SSIMULACRA2 | [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2)                 | Stable and tested |
 | Butteraugli | [libjxl](https://github.com/libjxl/libjxl)                                          | Stable and tested |
 | DSSIM       | Native implementation†                                                              | Require testing   |
-| PSNR        | Native implementation                                                               | Require testing   |
+| PSNR        | Native implementation                                                               | Stable and tested |
 | PSNR-HVS-M  | [Ponomarenko `psnrhvsm.m`](https://www.ponomarenko.info/psnrhvsm.htm)               | Stable and tested |
 | SSIM        | Native implementation                                                               | Require testing   |
 | MS-SSIM     | [Wang et al. `msssim.m`](https://ece.uwaterloo.ca/~z70wang/research/ssim/)          | Stable and tested |
@@ -153,6 +153,15 @@ PSNR-HVS-M is cross-validated the same way: `tests/psnr_hvs_m_reference.rs` pins
 grayscale fixtures (`scripts/gen-psnrhvs-goldens.sh`, via Octave) — matching
 exactly — with an independent NumPy reimplementation (`gen-psnrhvs-goldens.py`)
 as a no-Octave cross-check.
+
+PSNR has a closed form, so it is pinned to the definition itself rather than to
+an external tool: `tests/psnr.rs` checks `iqa::psnr` against
+`10·log10(MAX²/MSE)` for hand-computed errors at both bit depths, and pins the
+Rec.709 luma weights (`0.2126 / 0.7152 / 0.0722`) by distorting every channel at
+once. A closed form is an exact oracle, and the suite's *completeness* is proven
+by mutation testing — `just mutants-psnr` reports every mutant of `src/psnr.rs`
+caught — so a green run leaves no untested path. See
+[Mutation testing](#mutation-testing).
 
 ## Cargo features
 
@@ -266,6 +275,26 @@ link zero native code and pull neither `cc` nor `pkg-config` into its build
 graph. A violation exits non-zero. The same check runs weekly (and on any PR that
 touches `Cargo.toml`, `build.rs`, `third_party/`, or the script) via the `Size`
 workflow, which posts the size table to the run summary.
+
+### Mutation testing
+
+The metric test suites are validated for *completeness* with
+[`cargo-mutants`](https://github.com/sourcefrog/cargo-mutants): it compiles many
+deliberately broken copies of a metric and checks the suite rejects each one. A
+surviving (`MISSED`) mutant is a hole — a line the tests do not actually pin. The
+bar is **zero survivors**, except the genuinely equivalent mutants documented
+with their justification in `.cargo/mutants.toml`.
+
+```sh
+cargo install cargo-mutants   # once
+just mutants                  # PSNR, SSIM, DSSIM
+just mutants-sweep            # the remaining metrics (slow: rebuilds vendored C/C++)
+```
+
+Features are scoped per metric because the crate cannot build with
+`--all-features` (the `lcms2` backends are mutually exclusive). `cargo-mutants`
+is a developer tool, run on demand rather than in CI, and is not a crate
+dependency, so it has no effect on the published crate.
 
 ### Releasing
 

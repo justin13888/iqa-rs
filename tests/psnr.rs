@@ -131,6 +131,26 @@ fn luma_applies_rec709_weights() {
 }
 
 #[test]
+fn luma_weights_each_channel_exactly() {
+    // Distort all three channels by *different* amounts. PSNR is a difference
+    // metric, so any term that is equal in both images cancels in the error;
+    // distorting red alone (as above) therefore leaves the green and blue
+    // weights — and the way the three are summed — unconstrained. With every
+    // channel moving, the luma error is
+    // `0.2126*dR + 0.7152*dG + 0.0722*dB`, so a swapped sign, a dropped
+    // multiply, or a perturbed coefficient on any channel changes the score.
+    let reference = srgb8(4, 4, |_, _, c| [10, 20, 30][c] as u8);
+    let distorted = srgb8(4, 4, |_, _, c| [40, 60, 80][c] as u8);
+    let d_luma = 0.2126 * 30.0 + 0.7152 * 40.0 + 0.0722 * 50.0;
+    let result = psnr(&reference, &distorted, LUMA709).unwrap();
+    assert_close(
+        result,
+        expected_psnr(255.0, d_luma),
+        "luma all-channel distortion",
+    );
+}
+
+#[test]
 fn luma_and_rgb_agree_on_grayscale() {
     // For a grayscale image luma equals the single channel, so both modes
     // must yield bit-identical results.
