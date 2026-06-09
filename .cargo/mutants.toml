@@ -1,0 +1,23 @@
+# cargo-mutants configuration.
+#
+# Mutation testing is the completeness gate for iqa's metric test suites: if a
+# deliberately broken (mutated) copy of a metric still passes the tests, the
+# suite has a hole. See the "Mutation testing" section in the README.
+#
+# Feature selection differs per metric (the crate cannot build with
+# `--all-features` because the lcms2 backends are mutually exclusive), so it is
+# passed on the command line by the `mutants-*` recipes in the justfile rather
+# than pinned here.
+
+# The suite builds vendored C/C++ for the FFI metrics, so give the auto-derived
+# per-mutant test timeout generous headroom to avoid false timeouts.
+minimum_test_timeout = 60
+timeout_multiplier = 3.0
+
+# Equivalent / unviable mutants: mutations that cannot change observable
+# behaviour, so no test can (or should) kill them. Matched against the mutant
+# names printed by `cargo mutants --list`. Add an entry ONLY after confirming a
+# survivor is genuinely equivalent, and say why.
+exclude_re = [
+    # (populated below as survivors are confirmed equivalent)
+]
