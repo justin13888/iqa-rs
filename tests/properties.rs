@@ -13,6 +13,7 @@
         feature = "psnr",
         feature = "ssim",
         feature = "dssim",
+        feature = "ms-ssim",
         feature = "psnr-hvs-m",
         feature = "ssimulacra2",
         feature = "butteraugli"
@@ -72,6 +73,18 @@ mod dssim_rgb_averaged {
 mod dssim_luma709 {
     use super::*;
     property_matrix!(DssimLuma, Srgb8, Srgb16, Gray8, Gray16, Rgba8, Rgba16);
+}
+
+#[cfg(feature = "ms-ssim")]
+mod ms_ssim_rgb_averaged {
+    use super::*;
+    property_matrix!(MsssimRgbAvg, Srgb8, Srgb16, Gray8, Gray16, Rgba8, Rgba16);
+}
+
+#[cfg(feature = "ms-ssim")]
+mod ms_ssim_luma709 {
+    use super::*;
+    property_matrix!(MsssimLuma, Srgb8, Srgb16, Gray8, Gray16, Rgba8, Rgba16);
 }
 
 #[cfg(feature = "psnr-hvs-m")]

@@ -20,7 +20,7 @@ links = "iqa_native"
 # All metrics are enabled by default for convenience. Depend on iqa with
 # `default-features = false` and opt into exactly the metrics you need to keep
 # the build pure-Rust (see the README).
-default = ["psnr", "ssim", "dssim", "psnr-hvs-m", "ssimulacra2", "butteraugli", "vendored-lcms2"]
+default = ["psnr", "ssim", "dssim", "ms-ssim", "psnr-hvs-m", "ssimulacra2", "butteraugli", "vendored-lcms2"]
 psnr = []
 ssim = []
 # PSNR-HVS-M (Ponomarenko et al. 2007): DCT-domain PSNR with a contrast-
@@ -29,6 +29,9 @@ psnr-hvs-m = []
 # Structural dissimilarity, `(1 - SSIM) / 2`. Pure Rust; a thin transform over
 # `ssim`, which it therefore enables.
 dssim = ["ssim"]
+# Multi-scale SSIM (Wang/Simoncelli/Bovik 2003). Pure Rust; evaluates `ssim`'s
+# per-window machinery over an image pyramid, so it enables `ssim`.
+ms-ssim = ["ssim"]
 ssimulacra2 = ["dep:cc"]
 # Butteraugli, also bound to vendored libjxl C++; shares the native build (and
 # therefore the lcms2 backend) with `ssimulacra2`.
@@ -65,4 +68,4 @@ required-features = ["psnr", "ssim", "dssim", "ssimulacra2", "butteraugli"]
 # build. The lcms2 backends are mutually exclusive, so `all-features` is not a
 # valid build; name the metric set explicitly and pin the vendored backend so
 # docs.rs needs no system library (the vendored C++ ships in the published crate).
-features = ["psnr", "ssim", "dssim", "psnr-hvs-m", "ssimulacra2", "butteraugli", "vendored-lcms2"]
+features = ["psnr", "ssim", "dssim", "ms-ssim", "psnr-hvs-m", "ssimulacra2", "butteraugli", "vendored-lcms2"]
