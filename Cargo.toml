@@ -1,6 +1,15 @@
+[workspace]
+members = ["crates/iqa-cli"]
+resolver = "2"
+
+[workspace.package]
+# Single version shared by the `iqa` library and the `iqa-cli` binary; release-plz
+# bumps both crates together (see release-plz.toml).
+version = "0.1.4"
+
 [package]
 name = "iqa"
-version = "0.1.4"
+version.workspace = true
 edition = "2024"
 description = "A single, ergonomic API over the patchwork of visual quality assessment metrics in the Rust ecosystem."
 license = "MIT OR Apache-2.0"
