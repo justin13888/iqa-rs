@@ -25,11 +25,11 @@ jobs:
       - name: Format check
         run: cargo fmt --check
       - name: Lint
-        run: cargo clippy --all-targets --no-default-features --features psnr,ssim,dssim,ms-ssim,psnr-hvs-m,ssimulacra2,butteraugli,vendored-lcms2 -- -D warnings
+        run: cargo clippy --all-targets --no-default-features --features full,vendored-lcms2 -- -D warnings
       - name: Test (vendored lcms2 backend)
-        run: cargo test --no-default-features --features psnr,ssim,dssim,ms-ssim,psnr-hvs-m,ssimulacra2,butteraugli,vendored-lcms2
+        run: cargo test --no-default-features --features full,vendored-lcms2
       - name: Test (system lcms2 backend)
-        run: cargo test --no-default-features --features psnr,ssim,dssim,ms-ssim,psnr-hvs-m,ssimulacra2,butteraugli,system-lcms2
+        run: cargo test --no-default-features --features full,system-lcms2
       # iqa-cli is a separate workspace member; bare cargo above targets only the
       # root `iqa` package, so lint and test it explicitly. It builds `iqa` with
       # default features (vendored lcms2), so it needs the submodules above.

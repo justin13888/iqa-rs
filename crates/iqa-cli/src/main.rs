@@ -11,6 +11,9 @@
 //! # -> {"butteraugli":0.83,"psnr":38.114,"ssim":0.992,"ssimulacra2":87.421}
 //! ```
 //!
+//! Every metric in the `iqa` crate is available: `psnr`, `ssim`, `dssim`,
+//! `ms-ssim`, `psnr-hvs-m`, `ciede2000`, `ssimulacra2`, and `butteraugli`.
+//!
 //! Non-finite scores (e.g. the PSNR of two pixel-identical images is `+inf`) are
 //! emitted as JSON `null`. With no `--metric`, every available metric is
 //! computed; `--list-metrics` prints the full set and each metric's direction.
@@ -21,7 +24,10 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use iqa::{ButteraugliOptions, Image, PsnrOptions, Srgb8, SsimOptions};
+use iqa::{
+    ButteraugliOptions, Ciede2000Options, DssimOptions, Image, MsssimOptions, PsnrHvsOptions,
+    PsnrOptions, Srgb8, SsimOptions,
+};
 use serde_json::{Map, Value};
 
 /// A full-reference image-quality metric this CLI can compute.
@@ -47,16 +53,23 @@ fn compute_ssim(reference: &Image<Srgb8>, distorted: &Image<Srgb8>) -> iqa::Resu
 fn compute_butteraugli(reference: &Image<Srgb8>, distorted: &Image<Srgb8>) -> iqa::Result<f64> {
     iqa::butteraugli(reference, distorted, ButteraugliOptions::default())
 }
+fn compute_dssim(reference: &Image<Srgb8>, distorted: &Image<Srgb8>) -> iqa::Result<f64> {
+    iqa::dssim(reference, distorted, DssimOptions::default())
+}
+fn compute_msssim(reference: &Image<Srgb8>, distorted: &Image<Srgb8>) -> iqa::Result<f64> {
+    iqa::msssim(reference, distorted, MsssimOptions::default())
+}
+fn compute_psnr_hvs_m(reference: &Image<Srgb8>, distorted: &Image<Srgb8>) -> iqa::Result<f64> {
+    iqa::psnr_hvs_m(reference, distorted, PsnrHvsOptions::default())
+}
+fn compute_ciede2000(reference: &Image<Srgb8>, distorted: &Image<Srgb8>) -> iqa::Result<f64> {
+    iqa::ciede2000(reference, distorted, Ciede2000Options::default())
+}
 
 /// Every metric this CLI can compute. Add a metric by adding a row here — the
 /// `--metric` parser, the default set, `--list-metrics`, and the
 /// unknown-metric error all derive from this table.
 const METRICS: &[MetricDef] = &[
-    MetricDef {
-        name: "ssimulacra2",
-        higher_is_better: true,
-        compute: compute_ssimulacra2,
-    },
     MetricDef {
         name: "psnr",
         higher_is_better: true,
@@ -66,6 +79,33 @@ const METRICS: &[MetricDef] = &[
         name: "ssim",
         higher_is_better: true,
         compute: compute_ssim,
+    },
+    MetricDef {
+        name: "dssim",
+        // Structural dissimilarity `(1 - SSIM) / 2`; 0.0 is identical.
+        higher_is_better: false,
+        compute: compute_dssim,
+    },
+    MetricDef {
+        name: "ms-ssim",
+        higher_is_better: true,
+        compute: compute_msssim,
+    },
+    MetricDef {
+        name: "psnr-hvs-m",
+        higher_is_better: true,
+        compute: compute_psnr_hvs_m,
+    },
+    MetricDef {
+        name: "ciede2000",
+        // CIEDE2000 (ΔE₀₀) perceptual color difference; 0.0 is identical.
+        higher_is_better: false,
+        compute: compute_ciede2000,
+    },
+    MetricDef {
+        name: "ssimulacra2",
+        higher_is_better: true,
+        compute: compute_ssimulacra2,
     },
     MetricDef {
         name: "butteraugli",
@@ -222,8 +262,12 @@ mod tests {
         let img = sample();
         assert!((compute_ssimulacra2(&img, &img).unwrap() - 100.0).abs() < 1e-4);
         assert!((compute_ssim(&img, &img).unwrap() - 1.0).abs() < 1e-6);
+        assert!((compute_msssim(&img, &img).unwrap() - 1.0).abs() < 1e-6);
         assert!(compute_butteraugli(&img, &img).unwrap().abs() < 1e-3);
+        assert!(compute_dssim(&img, &img).unwrap().abs() < 1e-6); // 0 = identical
+        assert!(compute_ciede2000(&img, &img).unwrap().abs() < 1e-6); // 0 = identical
         assert!(!compute_psnr(&img, &img).unwrap().is_finite()); // +inf
+        assert!(!compute_psnr_hvs_m(&img, &img).unwrap().is_finite()); // +inf
     }
 
     #[test]
@@ -238,8 +282,12 @@ mod tests {
         let (reference, distorted) = (sample(), distorted());
         assert!(compute_ssimulacra2(&reference, &distorted).unwrap() < 100.0);
         assert!(compute_ssim(&reference, &distorted).unwrap() < 1.0);
+        assert!(compute_msssim(&reference, &distorted).unwrap() < 1.0);
+        assert!(compute_dssim(&reference, &distorted).unwrap() > 0.0);
+        assert!(compute_ciede2000(&reference, &distorted).unwrap() > 0.0);
         assert!(compute_butteraugli(&reference, &distorted).unwrap() > 0.0);
         assert!(compute_psnr(&reference, &distorted).unwrap().is_finite());
+        assert!(compute_psnr_hvs_m(&reference, &distorted).unwrap().is_finite());
     }
 
     #[test]

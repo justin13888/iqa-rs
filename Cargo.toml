@@ -29,7 +29,8 @@ links = "iqa_native"
 # All metrics are enabled by default for convenience. Depend on iqa with
 # `default-features = false` and opt into exactly the metrics you need to keep
 # the build pure-Rust (see the README).
-default = ["psnr", "ssim", "dssim", "ms-ssim", "psnr-hvs-m", "ciede2000", "ssimulacra2", "butteraugli", "vendored-lcms2"]
+default = ["full", "vendored-lcms2"]
+full = ["psnr", "ssim", "dssim", "ms-ssim", "psnr-hvs-m", "ciede2000", "ssimulacra2", "butteraugli"]
 psnr = []
 ssim = []
 # PSNR-HVS-M (Ponomarenko et al. 2007): DCT-domain PSNR with a contrast-

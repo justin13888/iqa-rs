@@ -86,9 +86,11 @@ iqa-cli --reference ref.png --distorted out.png --metric ssimulacra2,psnr,ssim,b
 # -> {"butteraugli":0.83,"psnr":38.114,"ssim":0.992,"ssimulacra2":87.421}
 ```
 
-With no `--metric`, every available metric is computed; `--list-metrics` prints
-the full set and each metric's direction. Non-finite scores (the PSNR of two
-pixel-identical images is `+inf`) are emitted as JSON `null`.
+Every metric in the `iqa` crate is exposed: `psnr`, `ssim`, `dssim`, `ms-ssim`,
+`psnr-hvs-m`, `ciede2000`, `ssimulacra2`, and `butteraugli`. With no `--metric`,
+every available metric is computed; `--list-metrics` prints the full set and each
+metric's direction. Non-finite scores (the PSNR of two pixel-identical images is
+`+inf`) are emitted as JSON `null`.
 
 ## Metrics
 
