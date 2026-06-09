@@ -102,7 +102,7 @@ The `Implementation` column points at the implementation `iqa` is built on. We p
 | ----------- | ----------------------------------------------------------------------------------- | ----------------- |
 | SSIMULACRA2 | [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2)                 | Stable and tested |
 | Butteraugli | [libjxl](https://github.com/libjxl/libjxl)                                          | Stable and tested |
-| DSSIM       | Native implementation†                                                              | Require testing   |
+| DSSIM       | Native implementation†                                                              | Stable and tested |
 | PSNR        | Native implementation                                                               | Stable and tested |
 | PSNR-HVS-M  | [Ponomarenko `psnrhvsm.m`](https://www.ponomarenko.info/psnrhvsm.htm)               | Stable and tested |
 | SSIM        | Native implementation                                                               | Stable and tested |
@@ -172,6 +172,11 @@ single-window size and a multi-window size, in both modes and at both bit depths
 That covers the variance, covariance, and window-shape terms that the uniform
 closed-form test leaves untouched, and `just mutants-ssim` confirms every mutant
 of `src/ssim.rs` is caught.
+
+DSSIM is the exact transform `(1 - SSIM) / 2`, so it inherits SSIM's validation:
+`tests/dssim.rs` pins it bit-for-bit against `(1 - iqa::ssim(...)) / 2` and
+against the closed form computed independently of `ssim()`, and `just
+mutants-dssim` reports every mutant of `src/dssim.rs` caught.
 
 ## Cargo features
 
