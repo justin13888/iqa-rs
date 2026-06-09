@@ -72,6 +72,24 @@ mismatch is a compile error rather than a meaningless score. See
 [`examples/compare.rs`](examples/compare.rs) for the full pipeline — run it with
 `cargo run --release --example compare -- reference.png distorted.jpg`.
 
+## Command-line interface
+
+The companion [`iqa-cli`](https://crates.io/crates/iqa-cli) crate is a thin
+front-end: it decodes two images with the
+[`image`](https://crates.io/crates/image) crate, computes the requested metrics,
+and prints them as a JSON object keyed by metric name. It is versioned and
+released in lockstep with `iqa`.
+
+```sh
+cargo install iqa-cli
+iqa-cli --reference ref.png --distorted out.png --metric ssimulacra2,psnr,ssim,butteraugli
+# -> {"butteraugli":0.83,"psnr":38.114,"ssim":0.992,"ssimulacra2":87.421}
+```
+
+With no `--metric`, every available metric is computed; `--list-metrics` prints
+the full set and each metric's direction. Non-finite scores (the PSNR of two
+pixel-identical images is `+inf`) are emitted as JSON `null`.
+
 ## Metrics
 
 The table below tracks the planned metric set — the nine-metric full-reference core that covers essentially every published JXL/AVIF codec comparison from the last two years, plus LPIPS as a learned reference metric.
