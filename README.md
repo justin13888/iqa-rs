@@ -83,7 +83,6 @@ The `Implementation` column points at the implementation `iqa` is built on. We p
 | SSIMULACRA2 | [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2)                         | Stable and tested |
 | Butteraugli | [libjxl](https://github.com/libjxl/libjxl)                                                  | Stable and tested |
 | DSSIM       | Native implementation†                                                                      | Require testing |
-| XPSNR       | [fraunhoferhhi/xpsnr](https://github.com/fraunhoferhhi/xpsnr)                               | Planned         |
 | PSNR        | Native implementation                                                                       | Require testing |
 | PSNR-HVS-M  | [Ponomarenko `psnrhvsm.m`](https://www.ponomarenko.info/psnrhvsm.htm) | Stable and tested |
 | SSIM        | Native implementation                                                                       | Require testing |
