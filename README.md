@@ -105,7 +105,7 @@ The `Implementation` column points at the implementation `iqa` is built on. We p
 | DSSIM       | Native implementation†                                                              | Require testing   |
 | PSNR        | Native implementation                                                               | Stable and tested |
 | PSNR-HVS-M  | [Ponomarenko `psnrhvsm.m`](https://www.ponomarenko.info/psnrhvsm.htm)               | Stable and tested |
-| SSIM        | Native implementation                                                               | Require testing   |
+| SSIM        | Native implementation                                                               | Stable and tested |
 | MS-SSIM     | [Wang et al. `msssim.m`](https://ece.uwaterloo.ca/~z70wang/research/ssim/)          | Stable and tested |
 | CIEDE2000   | Native implementation                                                               | Stable and tested |
 | LPIPS       | [richzhang/PerceptualSimilarity](https://github.com/richzhang/PerceptualSimilarity) | Not planned*      |
@@ -162,6 +162,16 @@ once. A closed form is an exact oracle, and the suite's *completeness* is proven
 by mutation testing — `just mutants-psnr` reports every mutant of `src/psnr.rs`
 caught — so a green run leaves no untested path. See
 [Mutation testing](#mutation-testing).
+
+SSIM has no simple closed form once the Gaussian window sees structure, so it is
+pinned by an **independent second implementation** rather than an external tool:
+`tests/ssim_reference.rs` re-derives mean SSIM from the textbook definition —
+building the window from `σ = 1.5` and taking `K1`, `K2`, and the 11×11 window
+from the spec — and checks `iqa::ssim` against it on structured fixtures, at a
+single-window size and a multi-window size, in both modes and at both bit depths.
+That covers the variance, covariance, and window-shape terms that the uniform
+closed-form test leaves untouched, and `just mutants-ssim` confirms every mutant
+of `src/ssim.rs` is caught.
 
 ## Cargo features
 
