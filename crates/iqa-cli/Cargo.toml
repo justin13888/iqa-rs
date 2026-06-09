@@ -17,9 +17,9 @@ path = "src/main.rs"
 # All metric math comes from the iqa crate; this CLI only decodes inputs and
 # serializes results. iqa's default features enable PSNR, SSIM, SSIMULACRA2 and
 # Butteraugli, and build lcms2 from source (vendored-lcms2) — so no system
-# lcms2 is required. The `path` is used for local/workspace builds; the `version`
-# is what crates.io publishes against (release-plz keeps it in step with iqa).
-iqa = { path = "../..", version = "0.1.4" }
+# lcms2 is required. The path/version come from `[workspace.dependencies]` in the
+# root Cargo.toml, which is the single place to bump the published version.
+iqa = { workspace = true }
 clap = { version = "4.4", features = ["derive"] }
 anyhow = "1.0"
 serde_json = "1.0"

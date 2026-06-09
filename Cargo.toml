@@ -5,7 +5,7 @@ resolver = "2"
 [workspace.package]
 # Single version shared by the `iqa` library and the `iqa-cli` binary; release-plz
 # bumps both crates together (see release-plz.toml).
-version = "0.1.4"
+version = "0.2.0"
 
 [package]
 name = "iqa"
@@ -55,6 +55,14 @@ butteraugli = ["dep:cc"]
 # this means `--all-features` is not a valid build — name the backend you want.
 vendored-lcms2 = []
 system-lcms2 = ["dep:pkg-config"]
+
+[workspace.dependencies]
+# Single source of truth for the `iqa` dependency requirement that `iqa-cli`
+# publishes against. Keep this version in step with `workspace.package.version`
+# above so a release only touches this file (`iqa-cli` inherits via
+# `iqa = { workspace = true }`). The `path` resolves to the root `iqa` crate for
+# local/workspace builds; the `version` is what crates.io publishes against.
+iqa = { path = ".", version = "0.2.0" }
 
 [dependencies]
 thiserror = "2.0.18"
