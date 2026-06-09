@@ -30,6 +30,13 @@ jobs:
         run: cargo test --no-default-features --features psnr,ssim,dssim,ms-ssim,psnr-hvs-m,ssimulacra2,butteraugli,vendored-lcms2
       - name: Test (system lcms2 backend)
         run: cargo test --no-default-features --features psnr,ssim,dssim,ms-ssim,psnr-hvs-m,ssimulacra2,butteraugli,system-lcms2
+      # iqa-cli is a separate workspace member; bare cargo above targets only the
+      # root `iqa` package, so lint and test it explicitly. It builds `iqa` with
+      # default features (vendored lcms2), so it needs the submodules above.
+      - name: Lint iqa-cli
+        run: cargo clippy -p iqa-cli --all-targets -- -D warnings
+      - name: Test iqa-cli
+        run: cargo test -p iqa-cli
 
   minimal:
     name: Test (pure-Rust subset)
