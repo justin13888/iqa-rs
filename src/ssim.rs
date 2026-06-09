@@ -181,7 +181,11 @@ pub(crate) fn gaussian_window() -> [[f64; WINDOW]; WINDOW] {
         for (i, w) in row.iter_mut().enumerate() {
             let dx = i as f64 - center;
             let dy = j as f64 - center;
-            *w = (-(dx * dx + dy * dy) / (2.0 * SIGMA * SIGMA)).exp();
+            // `2σ²` is grouped as `2 * (σ * σ)` (a bit-identical regrouping) so
+            // each operator is independently meaningful: written flat as
+            // `2.0 * SIGMA * SIGMA`, swapping the last `*` for `+` yields the
+            // same 4.5 at σ = 1.5, an equivalent mutation no test could catch.
+            *w = (-(dx * dx + dy * dy) / (2.0 * (SIGMA * SIGMA))).exp();
             sum += *w;
         }
     }

@@ -41,9 +41,11 @@ size:
 mutants-psnr:
     cargo mutants --no-default-features --features psnr -f src/psnr.rs
 
-# Mutation-test SSIM.
+# Mutation-test SSIM. `ms-ssim` is enabled too: src/ssim.rs also computes the
+# contrast-structure (cs) term, which only MS-SSIM consumes, so MS-SSIM's tests
+# are what pin those lines.
 mutants-ssim:
-    cargo mutants --no-default-features --features ssim -f src/ssim.rs
+    cargo mutants --no-default-features --features ssim,ms-ssim -f src/ssim.rs
 
 # Mutation-test DSSIM (the transform itself; `dssim` pulls in `ssim`).
 mutants-dssim:
