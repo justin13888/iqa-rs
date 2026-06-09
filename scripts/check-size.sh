@@ -38,7 +38,7 @@ COMBOS=(
   "psnr+ssim|--no-default-features --features psnr,ssim|pure"
   "ssimulacra2|--no-default-features --features ssimulacra2,vendored-lcms2|ffi"
   "butteraugli|--no-default-features --features butteraugli,vendored-lcms2|ffi"
-  "all|--no-default-features --features psnr,ssim,ssimulacra2,butteraugli,vendored-lcms2|ffi"
+  "full|--no-default-features --features full,vendored-lcms2|ffi"
 )
 
 # Total size in bytes of the given files. Missing paths contribute 0. Uses
