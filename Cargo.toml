@@ -24,6 +24,25 @@ build = "build.rs"
 # Build-uniqueness key for the shared native archive (libjxl subset + Highway +
 # lcms2) that `ssimulacra2` and `butteraugli` both link.
 links = "iqa_native"
+# The vendored submodules ship far more than build.rs compiles (tests, docs, IDE
+# projects, autotools, scatterplot images). Unpruned, the package is 22.8 MiB /
+# 10.0 MiB compressed — just over crates.io's 10 MiB limit, so publishing 413s.
+# Drop everything that isn't a source/header the native build actually consumes:
+# lcms2 needs only `include/` + `src/`, highway only `hwy/`, ssimulacra2 only
+# `src/`. The verify build (default features) compiles all of it, so an
+# over-exclusion fails `cargo package` rather than shipping a broken crate.
+exclude = [
+    "third_party/lcms2/testbed",
+    "third_party/lcms2/plugins",
+    "third_party/lcms2/doc",
+    "third_party/lcms2/Projects",
+    "third_party/lcms2/utils",
+    "third_party/lcms2/m4",
+    "third_party/highway/g3doc",
+    "third_party/highway/docs",
+    "third_party/highway/debian",
+    "third_party/ssimulacra2/*.svg",
+]
 
 [features]
 # All metrics are enabled by default for convenience. Depend on iqa with
