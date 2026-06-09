@@ -25,6 +25,8 @@
 //!   that evaluates `ssim` over an image pyramid (and so enables `ssim`).
 //! - `psnr-hvs-m` *(default)* — PSNR-HVS-M (Ponomarenko et al. 2007), a native
 //!   DCT-domain PSNR with a contrast-sensitivity function and contrast masking.
+//! - `ciede2000` *(default)* — CIEDE2000 (ΔE₀₀), a native implementation of the
+//!   CIE's perceptual color difference: per-pixel sRGB→CIELAB (D65), mean-pooled.
 //! - `ssimulacra2` *(default)* — SSIMULACRA2, bound via FFI to the vendored
 //!   C++ reference. Enabling it requires the `third_party/` git submodules and
 //!   a C++ toolchain; see the project README.
@@ -65,6 +67,11 @@ pub use ms_ssim::{MsssimOptions, msssim};
 mod psnr_hvs_m;
 #[cfg(feature = "psnr-hvs-m")]
 pub use psnr_hvs_m::{PsnrHvsMode, PsnrHvsOptions, psnr_hvs_m};
+
+#[cfg(feature = "ciede2000")]
+mod ciede2000;
+#[cfg(feature = "ciede2000")]
+pub use ciede2000::{Ciede2000Options, ciede2000};
 
 #[cfg(feature = "ssimulacra2")]
 mod ssimulacra2;

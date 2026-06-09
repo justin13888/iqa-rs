@@ -472,6 +472,25 @@ impl<F: PixelFormat> Metric<F> for PsnrHvsMLuma {
     }
 }
 
+/// CIEDE2000 (mean ΔE₀₀).
+#[cfg(feature = "ciede2000")]
+pub struct Ciede2000;
+
+#[cfg(feature = "ciede2000")]
+impl<F: PixelFormat> Metric<F> for Ciede2000 {
+    const NAME: &'static str = "ciede2000";
+    // A perfect match is color difference zero, and lower is better.
+    const IDENTITY_SCORE: f64 = 0.0;
+    const HIGHER_IS_BETTER: bool = false;
+    // ΔE₀₀ is symmetric, and the per-pixel formula is built to be bit-exactly so.
+    const SYMMETRIC: bool = true;
+    // A per-pixel metric with no windowing: it works at any size.
+    const MIN_DIM: u32 = 1;
+    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa::Result<f64> {
+        iqa::ciede2000(reference, distorted, iqa::Ciede2000Options::default())
+    }
+}
+
 /// SSIMULACRA2.
 #[cfg(feature = "ssimulacra2")]
 pub struct Ssim2;

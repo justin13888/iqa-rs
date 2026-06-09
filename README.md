@@ -145,6 +145,7 @@ Each metric is gated behind its own Cargo feature:
 | `dssim`          | yes     | Native Rust; structural dissimilarity `(1 - SSIM) / 2`. Enables `ssim`.        |
 | `ms-ssim`        | yes     | Native Rust; multi-scale SSIM over an image pyramid. Enables `ssim`.           |
 | `psnr-hvs-m`     | yes     | Native Rust; DCT-domain PSNR with a CSF and contrast masking.                  |
+| `ciede2000`      | yes     | Native Rust; CIEDE2000 (ΔE₀₀) mean color difference over sRGB→CIELAB (D65).    |
 | `ssimulacra2`    | yes     | Binds the vendored C++ reference; see the build requirements below.            |
 | `butteraugli`    | yes     | Binds vendored libjxl C++; shares the same native build as `ssimulacra2`.       |
 | `vendored-lcms2` | yes     | Builds the `lcms2` dependency from vendored source — no system lib needed. Mutually exclusive with `system-lcms2`. |
