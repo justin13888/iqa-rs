@@ -96,17 +96,17 @@ The table below tracks the planned metric set — the nine-metric full-reference
 
 The `Implementation` column points at the implementation `iqa` is built on. We prefer porting or binding the upstream source implementation over reusing a Rust-specific reimplementation: cross-compilation is a requirement, but portability beyond that is not, so staying close to the reference keeps results faithful.
 
-| IQA         | Implementation                                                                              | Status          |
-| ----------- | ------------------------------------------------------------------------------------------- | --------------- |
-| SSIMULACRA2 | [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2)                         | Stable and tested |
-| Butteraugli | [libjxl](https://github.com/libjxl/libjxl)                                                  | Stable and tested |
-| DSSIM       | Native implementation†                                                                      | Require testing |
-| PSNR        | Native implementation                                                                       | Require testing |
-| PSNR-HVS-M  | [Ponomarenko `psnrhvsm.m`](https://www.ponomarenko.info/psnrhvsm.htm) | Stable and tested |
-| SSIM        | Native implementation                                                                       | Require testing |
-| MS-SSIM     | [Wang et al. `msssim.m`](https://ece.uwaterloo.ca/~z70wang/research/ssim/) | Stable and tested |
-| CIEDE2000   | Native implementation                                                                       | Planned         |
-| LPIPS       | [richzhang/PerceptualSimilarity](https://github.com/richzhang/PerceptualSimilarity)         | Not planned*    |
+| IQA         | Implementation                                                                      | Status            |
+| ----------- | ----------------------------------------------------------------------------------- | ----------------- |
+| SSIMULACRA2 | [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2)                 | Stable and tested |
+| Butteraugli | [libjxl](https://github.com/libjxl/libjxl)                                          | Stable and tested |
+| DSSIM       | Native implementation†                                                              | Require testing   |
+| PSNR        | Native implementation                                                               | Require testing   |
+| PSNR-HVS-M  | [Ponomarenko `psnrhvsm.m`](https://www.ponomarenko.info/psnrhvsm.htm)               | Stable and tested |
+| SSIM        | Native implementation                                                               | Require testing   |
+| MS-SSIM     | [Wang et al. `msssim.m`](https://ece.uwaterloo.ca/~z70wang/research/ssim/)          | Stable and tested |
+| CIEDE2000   | Native implementation                                                               | Stable and tested |
+| LPIPS       | [richzhang/PerceptualSimilarity](https://github.com/richzhang/PerceptualSimilarity) | Not planned*      |
 
 *: LPIPS is Python implementation only.
 
@@ -156,18 +156,18 @@ as a no-Octave cross-check.
 
 Each metric is gated behind its own Cargo feature:
 
-| Feature          | Default | Notes                                                                          |
-| ---------------- | ------- | ------------------------------------------------------------------------------ |
-| `psnr`           | yes     | Native Rust; no system dependencies.                                           |
-| `ssim`           | yes     | Native Rust; no system dependencies.                                           |
-| `dssim`          | yes     | Native Rust; structural dissimilarity `(1 - SSIM) / 2`. Enables `ssim`.        |
-| `ms-ssim`        | yes     | Native Rust; multi-scale SSIM over an image pyramid. Enables `ssim`.           |
-| `psnr-hvs-m`     | yes     | Native Rust; DCT-domain PSNR with a CSF and contrast masking.                  |
-| `ciede2000`      | yes     | Native Rust; CIEDE2000 (ΔE₀₀) mean color difference over sRGB→CIELAB (D65).    |
-| `ssimulacra2`    | yes     | Binds the vendored C++ reference; see the build requirements below.            |
-| `butteraugli`    | yes     | Binds vendored libjxl C++; shares the same native build as `ssimulacra2`.       |
+| Feature          | Default | Notes                                                                                                              |
+| ---------------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
+| `psnr`           | yes     | Native Rust; no system dependencies.                                                                               |
+| `ssim`           | yes     | Native Rust; no system dependencies.                                                                               |
+| `dssim`          | yes     | Native Rust; structural dissimilarity `(1 - SSIM) / 2`. Enables `ssim`.                                            |
+| `ms-ssim`        | yes     | Native Rust; multi-scale SSIM over an image pyramid. Enables `ssim`.                                               |
+| `psnr-hvs-m`     | yes     | Native Rust; DCT-domain PSNR with a CSF and contrast masking.                                                      |
+| `ciede2000`      | yes     | Native Rust; CIEDE2000 (ΔE₀₀) mean color difference over sRGB→CIELAB (D65).                                        |
+| `ssimulacra2`    | yes     | Binds the vendored C++ reference; see the build requirements below.                                                |
+| `butteraugli`    | yes     | Binds vendored libjxl C++; shares the same native build as `ssimulacra2`.                                          |
 | `vendored-lcms2` | yes     | Builds the `lcms2` dependency from vendored source — no system lib needed. Mutually exclusive with `system-lcms2`. |
-| `system-lcms2`   | no      | Links a system `lcms2` via `pkg-config` instead. Mutually exclusive with `vendored-lcms2` — enable exactly one. |
+| `system-lcms2`   | no      | Links a system `lcms2` via `pkg-config` instead. Mutually exclusive with `vendored-lcms2` — enable exactly one.    |
 
 **Every metric is enabled by default for convenience** — `cargo add iqa`
 gets you the full set. Some metrics (such as `ssimulacra2`) bind native C/C++
