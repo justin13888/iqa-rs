@@ -87,7 +87,7 @@ The `Implementation` column points at the implementation `iqa` is built on. We p
 | PSNR        | Native implementation                                                                       | Require testing |
 | PSNR-HVS-M  | [xiph/daala — `tools/psnrhvs.c`](https://github.com/xiph/daala/blob/master/tools/psnrhvs.c) | Planned         |
 | SSIM        | Native implementation                                                                       | Require testing |
-| MS-SSIM     | [xiph/daala — `tools/ssim.c`](https://github.com/xiph/daala/blob/master/tools/ssim.c)       | Planned         |
+| MS-SSIM     | [Wang et al. `msssim.m`](https://ece.uwaterloo.ca/~z70wang/research/ssim/) | Stable and tested |
 | CIEDE2000   | Native implementation                                                                       | Planned         |
 | LPIPS       | [richzhang/PerceptualSimilarity](https://github.com/richzhang/PerceptualSimilarity)         | Not planned*    |
 
@@ -114,6 +114,12 @@ checks `iqa::butteraugli` against the exact distances libjxl's own
 matching to the reference tool's printed precision. `scripts/gen-butteraugli-goldens.sh`
 rebuilds those reference values from source.
 
+MS-SSIM is cross-validated the same way: `tests/ms_ssim_reference.rs` pins
+`iqa::msssim` against Wang, Simoncelli & Bovik's original `msssim.m` run on the
+same grayscale fixtures (`scripts/gen-msssim-goldens.sh`, via Octave) — matching
+exactly — with an independent NumPy reimplementation (`gen-msssim-goldens.py`) as
+a no-Octave cross-check.
+
 ## Cargo features
 
 Each metric is gated behind its own Cargo feature:
@@ -123,6 +129,7 @@ Each metric is gated behind its own Cargo feature:
 | `psnr`           | yes     | Native Rust; no system dependencies.                                           |
 | `ssim`           | yes     | Native Rust; no system dependencies.                                           |
 | `dssim`          | yes     | Native Rust; structural dissimilarity `(1 - SSIM) / 2`. Enables `ssim`.        |
+| `ms-ssim`        | yes     | Native Rust; multi-scale SSIM over an image pyramid. Enables `ssim`.           |
 | `ssimulacra2`    | yes     | Binds the vendored C++ reference; see the build requirements below.            |
 | `butteraugli`    | yes     | Binds vendored libjxl C++; shares the same native build as `ssimulacra2`.       |
 | `vendored-lcms2` | yes     | Builds the `lcms2` dependency from vendored source — no system lib needed. Mutually exclusive with `system-lcms2`. |

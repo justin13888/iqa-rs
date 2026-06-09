@@ -21,13 +21,13 @@ use crate::format::{PixelFormat, Sample};
 use crate::image::{Channels, Image};
 
 /// Side length of the (square) Gaussian window.
-const WINDOW: usize = 11;
+pub(crate) const WINDOW: usize = 11;
 /// Standard deviation of the Gaussian window, in pixels.
 const SIGMA: f64 = 1.5;
 /// First stabilizing constant coefficient (`C1 = (K1·L)²`).
-const K1: f64 = 0.01;
+pub(crate) const K1: f64 = 0.01;
 /// Second stabilizing constant coefficient (`C2 = (K2·L)²`).
-const K2: f64 = 0.03;
+pub(crate) const K2: f64 = 0.03;
 
 /// Which signal SSIM is computed over.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -150,7 +150,7 @@ pub fn ssim<F: PixelFormat>(
 }
 
 /// Channel indices contributing to a color computation (alpha excluded).
-fn color_channels(channels: Channels) -> &'static [usize] {
+pub(crate) fn color_channels(channels: Channels) -> &'static [usize] {
     match channels {
         Channels::Gray => &[0],
         Channels::Rgb | Channels::Rgba => &[0, 1, 2],
@@ -158,7 +158,7 @@ fn color_channels(channels: Channels) -> &'static [usize] {
 }
 
 /// Rec.709 luma of the pixel at `(x, y)`.
-fn luma<F: PixelFormat>(img: &Image<F>, x: u32, y: u32) -> f64 {
+pub(crate) fn luma<F: PixelFormat>(img: &Image<F>, x: u32, y: u32) -> f64 {
     match F::CHANNELS {
         Channels::Gray => img.sample_at(x, y, 0),
         Channels::Rgb | Channels::Rgba => {
@@ -173,7 +173,7 @@ fn luma<F: PixelFormat>(img: &Image<F>, x: u32, y: u32) -> f64 {
 ///
 /// The iteration order is fixed, so the weights are bit-identical on every
 /// run — the determinism the metric guarantees depends on it.
-fn gaussian_window() -> [[f64; WINDOW]; WINDOW] {
+pub(crate) fn gaussian_window() -> [[f64; WINDOW]; WINDOW] {
     let center = (WINDOW as f64 - 1.0) / 2.0;
     let mut window = [[0.0f64; WINDOW]; WINDOW];
     let mut sum = 0.0;
@@ -196,8 +196,8 @@ fn gaussian_window() -> [[f64; WINDOW]; WINDOW] {
 /// Mean of the SSIM map over every fully covered window position.
 ///
 /// `a` and `b` sample the signal (one channel, or luma) of the reference and
-/// distorted images at a pixel. Positions are visited in a fixed row-major
-/// order so the accumulation — and hence the result — is deterministic. The
+/// distorted images at a pixel. The result is bit-identical to the first
+/// component of [`ssim_cs_map_means`], which this delegates to. The
 /// minimum-dimension check in [`ssim`] guarantees at least one position.
 fn ssim_map_mean(
     width: u32,
@@ -208,24 +208,51 @@ fn ssim_map_mean(
     a: impl Fn(u32, u32) -> f64,
     b: impl Fn(u32, u32) -> f64,
 ) -> f64 {
-    let mut sum = 0.0;
+    ssim_cs_map_means(width, height, window, c1, c2, a, b).0
+}
+
+/// Means of the full-SSIM map and the contrast-structure (`cs`) map over every
+/// fully covered window position, returned as `(full_ssim_mean, cs_mean)`.
+///
+/// MS-SSIM needs the contrast-structure term
+/// `cs = (2σxy + C2) / (σx² + σy² + C2)` on its own — separate from the full
+/// SSIM, which also folds in the luminance term — so this exposes both in a
+/// single pass. The full-SSIM mean is bit-identical to what [`ssim_map_mean`]
+/// returns. Positions are visited in a fixed row-major order, so the
+/// accumulation — and hence the result — is deterministic.
+pub(crate) fn ssim_cs_map_means(
+    width: u32,
+    height: u32,
+    window: &[[f64; WINDOW]; WINDOW],
+    c1: f64,
+    c2: f64,
+    a: impl Fn(u32, u32) -> f64,
+    b: impl Fn(u32, u32) -> f64,
+) -> (f64, f64) {
+    let mut sum_full = 0.0;
+    let mut sum_cs = 0.0;
     let mut count = 0usize;
     for y0 in 0..=(height - WINDOW as u32) {
         for x0 in 0..=(width - WINDOW as u32) {
-            sum += ssim_at(window, c1, c2, x0, y0, &a, &b);
+            let (full, cs) = ssim_at(window, c1, c2, x0, y0, &a, &b);
+            sum_full += full;
+            sum_cs += cs;
             count += 1;
         }
     }
-    sum / count as f64
+    (sum_full / count as f64, sum_cs / count as f64)
 }
 
-/// SSIM at the single window whose top-left corner is `(x0, y0)`.
+/// Full SSIM and its contrast-structure term `cs` at the single window whose
+/// top-left corner is `(x0, y0)`, returned as `(full, cs)`.
 ///
 /// Two passes: the first accumulates the Gaussian-weighted means, the second
 /// the weighted variances and covariance from deviations about those means.
 /// The deviation form keeps the variance terms at exactly zero for identical
 /// input, so an identical pair scores exactly `1.0` even at 16-bit, which the
-/// algebraically equivalent `E[x²] − E[x]²` form would not.
+/// algebraically equivalent `E[x²] − E[x]²` form would not. The full SSIM is
+/// computed as one fraction (not `luminance * cs`) to keep its value
+/// bit-identical to the original single-term form.
 fn ssim_at<A, B>(
     window: &[[f64; WINDOW]; WINDOW],
     c1: f64,
@@ -234,7 +261,7 @@ fn ssim_at<A, B>(
     y0: u32,
     a: &A,
     b: &B,
-) -> f64
+) -> (f64, f64)
 where
     A: Fn(u32, u32) -> f64,
     B: Fn(u32, u32) -> f64,
@@ -268,8 +295,10 @@ where
     // The products are grouped so that swapping the two images — which swaps
     // `mu_x`/`mu_y` and `dx`/`dy` — leaves every term bit-identical, making the
     // metric exactly symmetric rather than symmetric up to rounding.
-    ((2.0 * (mu_x * mu_y) + c1) * (2.0 * cov + c2))
-        / ((mu_x * mu_x + mu_y * mu_y + c1) * (var_x + var_y + c2))
+    let full = ((2.0 * (mu_x * mu_y) + c1) * (2.0 * cov + c2))
+        / ((mu_x * mu_x + mu_y * mu_y + c1) * (var_x + var_y + c2));
+    let cs = (2.0 * cov + c2) / (var_x + var_y + c2);
+    (full, cs)
 }
 
 #[cfg(test)]
