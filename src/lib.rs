@@ -23,6 +23,8 @@
 //!   implementation layered on `ssim` (which it enables).
 //! - `ms-ssim` *(default)* — multi-scale SSIM (MS-SSIM), a native implementation
 //!   that evaluates `ssim` over an image pyramid (and so enables `ssim`).
+//! - `psnr-hvs-m` *(default)* — PSNR-HVS-M (Ponomarenko et al. 2007), a native
+//!   DCT-domain PSNR with a contrast-sensitivity function and contrast masking.
 //! - `ssimulacra2` *(default)* — SSIMULACRA2, bound via FFI to the vendored
 //!   C++ reference. Enabling it requires the `third_party/` git submodules and
 //!   a C++ toolchain; see the project README.
@@ -58,6 +60,11 @@ pub use dssim::{DssimOptions, dssim};
 mod ms_ssim;
 #[cfg(feature = "ms-ssim")]
 pub use ms_ssim::{MsssimOptions, msssim};
+
+#[cfg(feature = "psnr-hvs-m")]
+mod psnr_hvs_m;
+#[cfg(feature = "psnr-hvs-m")]
+pub use psnr_hvs_m::{PsnrHvsMode, PsnrHvsOptions, psnr_hvs_m};
 
 #[cfg(feature = "ssimulacra2")]
 mod ssimulacra2;

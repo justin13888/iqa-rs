@@ -405,6 +405,29 @@ impl<F: PixelFormat> Metric<F> for MsssimRgbAvg {
     }
 }
 
+/// PSNR-HVS-M in channel-pooled (`RgbAveraged`) mode.
+#[cfg(feature = "psnr-hvs-m")]
+pub struct PsnrHvsMRgbAvg;
+
+#[cfg(feature = "psnr-hvs-m")]
+impl<F: PixelFormat> Metric<F> for PsnrHvsMRgbAvg {
+    const NAME: &'static str = "psnr-hvs-m (rgb-averaged)";
+    const IDENTITY_SCORE: f64 = f64::INFINITY;
+    const HIGHER_IS_BETTER: bool = true;
+    // The masking threshold is max(reference, distorted), so it is symmetric.
+    const SYMMETRIC: bool = true;
+    const MIN_DIM: u32 = 8;
+    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa::Result<f64> {
+        iqa::psnr_hvs_m(
+            reference,
+            distorted,
+            iqa::PsnrHvsOptions {
+                mode: iqa::PsnrHvsMode::RgbAveraged,
+            },
+        )
+    }
+}
+
 /// MS-SSIM in Rec.709 luma (`Luma709`) mode.
 #[cfg(feature = "ms-ssim")]
 pub struct MsssimLuma;
@@ -422,6 +445,28 @@ impl<F: PixelFormat> Metric<F> for MsssimLuma {
             distorted,
             iqa::MsssimOptions {
                 mode: iqa::SsimMode::Luma709,
+            },
+        )
+    }
+}
+
+/// PSNR-HVS-M in Rec.709 luma (`Luma709`) mode.
+#[cfg(feature = "psnr-hvs-m")]
+pub struct PsnrHvsMLuma;
+
+#[cfg(feature = "psnr-hvs-m")]
+impl<F: PixelFormat> Metric<F> for PsnrHvsMLuma {
+    const NAME: &'static str = "psnr-hvs-m (luma709)";
+    const IDENTITY_SCORE: f64 = f64::INFINITY;
+    const HIGHER_IS_BETTER: bool = true;
+    const SYMMETRIC: bool = true;
+    const MIN_DIM: u32 = 8;
+    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa::Result<f64> {
+        iqa::psnr_hvs_m(
+            reference,
+            distorted,
+            iqa::PsnrHvsOptions {
+                mode: iqa::PsnrHvsMode::Luma709,
             },
         )
     }
