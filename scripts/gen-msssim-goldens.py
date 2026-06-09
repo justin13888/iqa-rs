@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 #
-# gen-msssim-goldens.py — regenerate the reference values that
-# tests/ms_ssim_reference.rs checks `iqa::msssim` against.
+# gen-msssim-goldens.py — a no-dependency cross-check of the MS-SSIM goldens.
 #
-# This is an INDEPENDENT NumPy reimplementation of the published five-scale
-# MS-SSIM (Wang, Simoncelli & Bovik, "Multiscale Structural Similarity for Image
-# Quality Assessment", 2003) — the same algorithm Daala's tools/dump_msssim.c
-# implements. It is written from the paper rather than from the Rust: a
-# different language, a separate convolution, and the textbook E[x^2]-E[x]^2
-# variance form (the crate uses the deviation form). Agreement between the two
-# is therefore real evidence the port is correct, not a restatement of it.
+# The AUTHORITATIVE goldens come from `scripts/gen-msssim-goldens.sh`, which runs
+# the original reference `msssim.m` (Wang, Simoncelli & Bovik, "Multiscale
+# Structural Similarity for Image Quality Assessment", 2003) under Octave. This
+# script is an INDEPENDENT NumPy reimplementation of that same five-scale
+# algorithm, written from the paper rather than from the Rust: a different
+# language, a separate convolution, and the textbook E[x^2]-E[x]^2 variance form
+# (the crate uses the deviation form). It exists so the goldens can be re-derived
+# without Octave and so a third implementation has to agree — it reproduces the
+# reference values exactly.
 #
 # It reads the committed grayscale PGM fixtures and prints the Rust `GOLDENS`
 # table to paste into tests/ms_ssim_reference.rs. The fixtures are the single
@@ -20,23 +21,6 @@
 # Regenerate the fixtures first if they changed:
 #   cargo test --features ms-ssim --test ms_ssim_reference \
 #       write_ms_ssim_fixtures -- --ignored
-#
-# ---------------------------------------------------------------------------
-# Authoritative re-pin (TODO): the canonical oracle is Daala's own dump_msssim
-# binary. Daala builds with autotools and the tool consumes Y4M, so the recipe
-# is, roughly:
-#
-#   git clone https://github.com/xiph/daala && cd daala
-#   git checkout <PINNED_COMMIT>          # pin and record the commit here
-#   ./autogen.sh && ./configure && make tools/dump_msssim
-#   # wrap each grayscale fixture as a luma Y4M (Y = gray, neutral chroma):
-#   ffmpeg -i tests/fixtures/ms_ssim/<f>.pgm -pix_fmt yuv420p -f yuv4mpegpipe <f>.y4m
-#   tools/dump_msssim <ref>.y4m <dist>.y4m   # read the Y/luma MS-SSIM it prints
-#
-# Doing this needs autoconf/automake + ffmpeg, which were unavailable where the
-# current values were generated. Once re-pinned, update this header and flip the
-# README MS-SSIM row to "Stable and tested".
-# ---------------------------------------------------------------------------
 
 import os
 import sys

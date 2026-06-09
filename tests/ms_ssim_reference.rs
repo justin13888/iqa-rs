@@ -5,20 +5,14 @@
 //! algebra slip in the port — wrong weight, misaligned downsample, a swapped
 //! contrast-structure term — moves the number out of band and fails here.
 //!
-//! The committed [`GOLDENS`] are produced by `scripts/gen-msssim-goldens.py`, an
-//! **independent NumPy reimplementation** of the published five-scale MS-SSIM
-//! (Wang/Simoncelli/Bovik 2003, the same algorithm Daala's `tools/dump_msssim.c`
-//! implements). It is deliberately written from the paper — a different language,
-//! a different convolution, and the textbook `E[x²]−E[x]²` variance form rather
-//! than this crate's deviation form — so agreement is real evidence, not a
-//! restatement of our own arithmetic. The fixtures are **grayscale**, so the
-//! luma path has no color-conversion freedom and a single plane is compared.
-//!
-//! TODO(authoritative): re-pin these values against the Daala `dump_msssim`
-//! binary itself. That build is autotools-based (needs `autoconf`/`automake`,
-//! plus `ffmpeg` to wrap the grayscale fixtures as luma Y4M); the recipe lives
-//! in the header of `scripts/gen-msssim-goldens.py`. Until then the MS-SSIM row
-//! in the README stays "Require testing".
+//! The committed [`GOLDENS`] are produced by `scripts/gen-msssim-goldens.sh`,
+//! which runs the **original reference implementation** — Wang/Simoncelli/Bovik's
+//! `msssim.m` — under Octave on these exact fixtures. `iqa::msssim` reproduces
+//! that five-scale metric, so this pins our output to the canonical source of
+//! truth, not a paraphrase of it. `scripts/gen-msssim-goldens.py` is an
+//! independent NumPy reimplementation kept as a no-Octave cross-check; it
+//! reproduces the same values. The fixtures are **grayscale**, so the luma path
+//! has no color-conversion freedom and a single plane is compared.
 //!
 //! Fixtures are written by the `#[ignore]`d [`write_ms_ssim_fixtures`] below; if
 //! you regenerate them you must regenerate the goldens too.
@@ -44,8 +38,8 @@ const CASES: &[(&str, &str, &str)] = &[
     ("texture_dist", "texture_ref.pgm", "texture_dist.pgm"),
 ];
 
-/// Independent five-scale MS-SSIM from `scripts/gen-msssim-goldens.py`.
-/// Regenerate with that script after changing the fixtures.
+/// Five-scale MS-SSIM from the reference `msssim.m`, via
+/// `scripts/gen-msssim-goldens.sh`. Regenerate after changing the fixtures.
 const GOLDENS: &[(&str, f64)] = &[
     ("gradient_lo", 0.985502),
     ("gradient_hi", 0.859923),
@@ -71,9 +65,9 @@ fn matches_reference_msssim() {
         let golden = golden(label);
 
         // 1% relative + a small absolute floor, matching the butteraugli
-        // cross-check: enough slack for cross-implementation float divergence
-        // (and a future re-pin against the Daala binary), far tighter than the
-        // tens-of-percent a real algorithm bug would cause.
+        // cross-check: enough slack for cross-target float divergence, far
+        // tighter than the tens-of-percent a real algorithm bug would cause.
+        // (On the generating host our output matches the reference exactly.)
         let tol = 1e-3 + 0.01 * golden;
         let delta = (ours - golden).abs();
         eprintln!("{label}: ours={ours:.6} reference={golden:.6} (Δ={delta:.6})");
