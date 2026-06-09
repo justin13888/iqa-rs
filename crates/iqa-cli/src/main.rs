@@ -287,7 +287,11 @@ mod tests {
         assert!(compute_ciede2000(&reference, &distorted).unwrap() > 0.0);
         assert!(compute_butteraugli(&reference, &distorted).unwrap() > 0.0);
         assert!(compute_psnr(&reference, &distorted).unwrap().is_finite());
-        assert!(compute_psnr_hvs_m(&reference, &distorted).unwrap().is_finite());
+        assert!(
+            compute_psnr_hvs_m(&reference, &distorted)
+                .unwrap()
+                .is_finite()
+        );
     }
 
     #[test]
