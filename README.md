@@ -80,7 +80,7 @@ The `Implementation` column points at the implementation `iqa` is built on. We p
 
 | IQA         | Implementation                                                                              | Status          |
 | ----------- | ------------------------------------------------------------------------------------------- | --------------- |
-| SSIMULACRA2 | [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2)                         | Require testing |
+| SSIMULACRA2 | [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2)                         | Stable and tested |
 | Butteraugli | [libjxl](https://github.com/libjxl/libjxl)                                                  | Stable and tested |
 | DSSIM       | Native implementation†                                                                      | Require testing |
 | XPSNR       | [fraunhoferhhi/xpsnr](https://github.com/fraunhoferhhi/xpsnr)                               | Planned         |
@@ -107,6 +107,15 @@ source, so it cannot be reproduced under this crate's permissive
 - **Planned** — selected for implementation, not yet started.
 - **Require testing** — implemented, but not yet validated against reference outputs.
 - **Stable and tested** — implemented and verified against the reference implementation.
+
+SSIMULACRA2 is cross-validated numerically: `tests/ssimulacra2_reference.rs`
+checks `iqa::ssimulacra2` against the scores the reference `ssimulacra2` tool —
+built from the exact cloudinary source we vendor (SSIMULACRA **2.1**) — produces
+on the same pixels, including a deliberately non-vector-aligned fixture that
+exercises the SIMD row-padding handling. `scripts/gen-ssimulacra2-goldens.sh`
+rebuilds those reference values from source. (The oracle must be 2.1: the metric
+was retuned from 2.0 in April 2023, so an older self-contained libjxl build would
+score the same pixels very differently.)
 
 Butteraugli is cross-validated numerically: `tests/butteraugli_reference.rs`
 checks `iqa::butteraugli` against the exact distances libjxl's own

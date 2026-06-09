@@ -26,6 +26,17 @@ jxl::ImageBundle MakeBundle(const jxl::ImageMetadata* metadata,
                             const float* rgb, unsigned width,
                             unsigned height) {
   jxl::Image3F color(width, height);
+  // Highway pads each row up to a SIMD-vector multiple; those trailing lanes are
+  // uninitialized at allocation. In the sibling butteraugli_shim.cc this was an
+  // observable bug (its convolutions read past the row, making the score depend
+  // on heap garbage; fixed in commit 9828f69). SSIMULACRA2 is different: every
+  // read of this image clamps to `xsize()-1` (see `Downsample` in
+  // ssimulacra2.cc), so the padding is *not* read and the score is unaffected by
+  // its contents -- verified by poisoning the padding and observing no change.
+  // We still replicate the last real pixel across it (edge clamp), for parity
+  // with the sibling shim and as defense against a future libjxl/algorithm
+  // change that does touch it; for aligned widths the fill is a no-op.
+  const size_t row_pixels = static_cast<size_t>(color.PixelsPerRow());
   for (unsigned y = 0; y < height; ++y) {
     float* r = color.PlaneRow(0, y);
     float* g = color.PlaneRow(1, y);
@@ -35,6 +46,11 @@ jxl::ImageBundle MakeBundle(const jxl::ImageMetadata* metadata,
       r[x] = src[x * 3 + 0];
       g[x] = src[x * 3 + 1];
       b[x] = src[x * 3 + 2];
+    }
+    for (size_t x = width; x < row_pixels; ++x) {
+      r[x] = r[width - 1];
+      g[x] = g[width - 1];
+      b[x] = b[width - 1];
     }
   }
   jxl::ImageBundle bundle(metadata);
