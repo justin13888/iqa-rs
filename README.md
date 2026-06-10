@@ -337,21 +337,20 @@ bump from its Conventional Commit type, and applies the **largest** bump any one
 of them implies. The version in the open release PR therefore reflects everything
 accumulated on `master` since the last release, and rises as more commits land.
 
-While the crate is pre-1.0 (`0.y.z`) the bumps are deliberately conservative —
-following Cargo's compatibility rules, the *minor* slot plays the role of "major",
-so a breaking change moves `0.1.z → 0.2.0` rather than `1.0.0`:
+Now that the API is finalized the crate is `≥ 1.0.0`, so the standard SemVer
+mapping applies — a breaking change bumps the *major* slot:
 
-| Highest-ranked commit on `master`           | Bump while pre-1.0 (`0.y.z`) | Bump once `≥ 1.0.0` |
-| ------------------------------------------- | ---------------------------- | ------------------- |
-| `feat!:` / `fix!:` / any `BREAKING CHANGE:` | minor (`0.1.1 → 0.2.0`)      | major               |
-| `feat:`                                     | patch (`0.1.1 → 0.1.2`)      | minor               |
-| `fix:`                                      | patch (`0.1.1 → 0.1.2`)      | patch               |
-| `docs:`, `chore:`, `test:`, `refactor:`, …  | patch (`0.1.1 → 0.1.2`)      | patch               |
+| Highest-ranked commit on `master`           | Bump once `≥ 1.0.0`         |
+| ------------------------------------------- | --------------------------- |
+| `feat!:` / `fix!:` / any `BREAKING CHANGE:` | major (`1.2.0 → 2.0.0`)     |
+| `feat:`                                     | minor (`1.2.0 → 1.3.0`)     |
+| `fix:`                                      | patch (`1.2.0 → 1.2.1`)     |
+| `docs:`, `chore:`, `test:`, `refactor:`, …  | patch (`1.2.0 → 1.2.1`)     |
 
-The practical consequence: while the crate is still `0.1.z`, a plain `feat:` does
-**not** reach `0.2.0` — only a breaking-change commit (`feat!:` or a
-`BREAKING CHANGE:` footer) bumps the minor. This is why `0.1.1` shipped three new
-metrics as a patch rather than a minor release.
+The `1.0.0` major bump was a deliberate one-time promotion (the `0.x → 1.x` step
+is never produced by Conventional Commits alone, since under Cargo's pre-1.0
+rules the *minor* slot played the role of "major"). The minor was carried over
+unchanged, so `0.2.0` became `1.2.0`.
 
 To cut a release:
 
