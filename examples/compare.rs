@@ -83,6 +83,26 @@ fn main() -> Result<(), Box<dyn Error>> {
         "    (0 = identical, lower is better)",
     );
     report(
+        "MS-SSIM (RGB-averaged)",
+        iqa::msssim(&reference, &distorted, iqa::MsssimOptions::default()),
+        "    (1.0 = identical)",
+    );
+    report(
+        "IW-SSIM (RGB-averaged)",
+        iqa::iwssim(&reference, &distorted, iqa::IwssimOptions::default()),
+        "    (1.0 = identical)",
+    );
+    report(
+        "PSNR-HVS-M (RGB-averaged)",
+        iqa::psnr_hvs_m(&reference, &distorted, iqa::PsnrHvsOptions::default()),
+        "dB  (higher is better)",
+    );
+    report(
+        "CIEDE2000 (ΔE₀₀)",
+        iqa::ciede2000(&reference, &distorted, iqa::Ciede2000Options::default()),
+        "    (0 = identical, lower is better)",
+    );
+    report(
         "SSIMULACRA2",
         iqa::ssimulacra2(&reference, &distorted),
         "    (100 = identical)",
@@ -109,7 +129,7 @@ fn describe(role: &str, path: &OsString, image: &Image<Srgb8>) {
 /// Prints one metric result, or the error explaining why it could not run.
 fn report(name: &str, result: iqa::Result<f64>, unit: &str) {
     match result {
-        Ok(score) => println!("  {name:<22} {score:>9.3}  {unit}"),
-        Err(error) => println!("  {name:<22}     error: {error}"),
+        Ok(score) => println!("  {name:<25} {score:>9.3}  {unit}"),
+        Err(error) => println!("  {name:<25}     error: {error}"),
     }
 }
