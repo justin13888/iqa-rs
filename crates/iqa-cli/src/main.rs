@@ -12,7 +12,8 @@
 //! ```
 //!
 //! Every metric in the `iqa` crate is available: `psnr`, `ssim`, `dssim`,
-//! `ms-ssim`, `psnr-hvs-m`, `ciede2000`, `ssimulacra2`, and `butteraugli`.
+//! `ms-ssim`, `iw-ssim`, `psnr-hvs-m`, `ciede2000`, `ssimulacra2`, and
+//! `butteraugli`.
 //!
 //! Non-finite scores (e.g. the PSNR of two pixel-identical images is `+inf`) are
 //! emitted as JSON `null`. With no `--metric`, every available metric is
@@ -25,8 +26,8 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use clap::Parser;
 use iqa::{
-    ButteraugliOptions, Ciede2000Options, DssimOptions, Image, MsssimOptions, PsnrHvsOptions,
-    PsnrOptions, Srgb8, SsimOptions,
+    ButteraugliOptions, Ciede2000Options, DssimOptions, Image, IwssimOptions, MsssimOptions,
+    PsnrHvsOptions, PsnrOptions, Srgb8, SsimOptions,
 };
 use serde_json::{Map, Value};
 
@@ -59,6 +60,9 @@ fn compute_dssim(reference: &Image<Srgb8>, distorted: &Image<Srgb8>) -> iqa::Res
 fn compute_msssim(reference: &Image<Srgb8>, distorted: &Image<Srgb8>) -> iqa::Result<f64> {
     iqa::msssim(reference, distorted, MsssimOptions::default())
 }
+fn compute_iwssim(reference: &Image<Srgb8>, distorted: &Image<Srgb8>) -> iqa::Result<f64> {
+    iqa::iwssim(reference, distorted, IwssimOptions::default())
+}
 fn compute_psnr_hvs_m(reference: &Image<Srgb8>, distorted: &Image<Srgb8>) -> iqa::Result<f64> {
     iqa::psnr_hvs_m(reference, distorted, PsnrHvsOptions::default())
 }
@@ -90,6 +94,11 @@ const METRICS: &[MetricDef] = &[
         name: "ms-ssim",
         higher_is_better: true,
         compute: compute_msssim,
+    },
+    MetricDef {
+        name: "iw-ssim",
+        higher_is_better: true,
+        compute: compute_iwssim,
     },
     MetricDef {
         name: "psnr-hvs-m",
@@ -263,6 +272,7 @@ mod tests {
         assert!((compute_ssimulacra2(&img, &img).unwrap() - 100.0).abs() < 1e-4);
         assert!((compute_ssim(&img, &img).unwrap() - 1.0).abs() < 1e-6);
         assert!((compute_msssim(&img, &img).unwrap() - 1.0).abs() < 1e-6);
+        assert!((compute_iwssim(&img, &img).unwrap() - 1.0).abs() < 1e-6);
         assert!(compute_butteraugli(&img, &img).unwrap().abs() < 1e-3);
         assert!(compute_dssim(&img, &img).unwrap().abs() < 1e-6); // 0 = identical
         assert!(compute_ciede2000(&img, &img).unwrap().abs() < 1e-6); // 0 = identical
@@ -283,6 +293,7 @@ mod tests {
         assert!(compute_ssimulacra2(&reference, &distorted).unwrap() < 100.0);
         assert!(compute_ssim(&reference, &distorted).unwrap() < 1.0);
         assert!(compute_msssim(&reference, &distorted).unwrap() < 1.0);
+        assert!(compute_iwssim(&reference, &distorted).unwrap() < 1.0);
         assert!(compute_dssim(&reference, &distorted).unwrap() > 0.0);
         assert!(compute_ciede2000(&reference, &distorted).unwrap() > 0.0);
         assert!(compute_butteraugli(&reference, &distorted).unwrap() > 0.0);

@@ -14,6 +14,7 @@
         feature = "ssim",
         feature = "dssim",
         feature = "ms-ssim",
+        feature = "iw-ssim",
         feature = "psnr-hvs-m",
         feature = "ciede2000",
         feature = "ssimulacra2",
@@ -86,6 +87,18 @@ mod ms_ssim_rgb_averaged {
 mod ms_ssim_luma709 {
     use super::*;
     property_matrix!(MsssimLuma, Srgb8, Srgb16, Gray8, Gray16, Rgba8, Rgba16);
+}
+
+#[cfg(feature = "iw-ssim")]
+mod iw_ssim_rgb_averaged {
+    use super::*;
+    property_matrix!(IwssimRgbAvg, Srgb8, Srgb16, Gray8, Gray16, Rgba8, Rgba16);
+}
+
+#[cfg(feature = "iw-ssim")]
+mod iw_ssim_luma709 {
+    use super::*;
+    property_matrix!(IwssimLuma, Srgb8, Srgb16, Gray8, Gray16, Rgba8, Rgba16);
 }
 
 #[cfg(feature = "psnr-hvs-m")]
