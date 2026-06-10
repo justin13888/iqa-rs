@@ -67,9 +67,10 @@ pub struct MsssimOptions {
 /// channel layout, or bit depth is rejected by the compiler rather than at
 /// run time. An alpha channel, if present, is ignored. The score ranges over
 /// `(-1, 1]`; higher is better, and pixel-identical images score exactly `1.0`.
-/// Each image must be at least 11x11 (the size of the Gaussian window); see the
-/// [module docs](self) for how the number of pyramid scales adapts to the image
-/// size.
+/// Each image must be at least 11x11 (the size of the Gaussian window). The
+/// metric uses up to five pyramid scales, dropping coarser scales (and
+/// renormalizing their weights) for images too small to hold them; all five run
+/// at 176x176 and larger, matching the reference.
 ///
 /// # Errors
 ///

@@ -30,7 +30,7 @@ C/C++ toolchain at all, disable the defaults and take just the metrics you need:
 
 ```toml
 [dependencies]
-iqa = { version = "0.1", default-features = false, features = ["psnr"] }
+iqa = { version = "1.2", default-features = false, features = ["psnr"] }
 ```
 
 ## Quick start
@@ -63,6 +63,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // DSSIM — pure Rust; (1 - SSIM)/2, so 0.0 = identical and lower is better.
     let dssim = iqa::dssim(&reference, &distorted, iqa::DssimOptions::default())?;
     println!("DSSIM:       {dssim:.3}");
+
+    // MS-SSIM — pure Rust; multi-scale SSIM, 1.0 = identical.
+    let msssim = iqa::msssim(&reference, &distorted, iqa::MsssimOptions::default())?;
+    println!("MS-SSIM:     {msssim:.3}");
+
+    // IW-SSIM — pure Rust; information-weighted SSIM, 1.0 = identical.
+    let iwssim = iqa::iwssim(&reference, &distorted, iqa::IwssimOptions::default())?;
+    println!("IW-SSIM:     {iwssim:.3}");
+
+    // PSNR-HVS-M — pure Rust; DCT-domain PSNR with HVS masking, higher is better.
+    let psnr_hvs_m = iqa::psnr_hvs_m(&reference, &distorted, iqa::PsnrHvsOptions::default())?;
+    println!("PSNR-HVS-M:  {psnr_hvs_m:.3} dB");
+
+    // CIEDE2000 — pure Rust; mean ΔE₀₀ color difference, 0.0 = identical, lower is better.
+    let ciede2000 = iqa::ciede2000(&reference, &distorted, iqa::Ciede2000Options::default())?;
+    println!("CIEDE2000:   {ciede2000:.3}");
 
     // SSIMULACRA2 — requires the `ssimulacra2` feature; 100 = identical.
     let ssimulacra2 = iqa::ssimulacra2(&reference, &distorted)?;
@@ -218,7 +234,7 @@ metrics you need:
 ```toml
 [dependencies]
 # Pure-Rust subset only — no C/C++ toolchain required.
-iqa = { version = "0.1", default-features = false, features = ["psnr"] }
+iqa = { version = "1.2", default-features = false, features = ["psnr"] }
 ```
 
 ### Building the C++ metrics (`ssimulacra2`, `butteraugli`)
@@ -240,7 +256,7 @@ library via `pkg-config`:
 
 ```toml
 [dependencies]
-iqa = { version = "0.1", default-features = false, features = ["psnr", "ssim", "ssimulacra2", "system-lcms2"] }
+iqa = { version = "1.2", default-features = false, features = ["psnr", "ssim", "ssimulacra2", "system-lcms2"] }
 ```
 
 ```sh

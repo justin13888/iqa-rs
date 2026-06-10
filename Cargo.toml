@@ -108,7 +108,7 @@ image = { version = "0.25", default-features = false, features = ["png", "jpeg",
 
 [[example]]
 name = "compare"
-required-features = ["psnr", "ssim", "dssim", "ssimulacra2", "butteraugli"]
+required-features = ["psnr", "ssim", "dssim", "ms-ssim", "iw-ssim", "psnr-hvs-m", "ciede2000", "ssimulacra2", "butteraugli"]
 
 [package.metadata.docs.rs]
 # Document every metric (including the C++ ones) on docs.rs, matching the default
