@@ -450,6 +450,52 @@ impl<F: PixelFormat> Metric<F> for MsssimLuma {
     }
 }
 
+/// IW-SSIM in channel-averaged (`RgbAveraged`) mode.
+#[cfg(feature = "iw-ssim")]
+pub struct IwssimRgbAvg;
+
+#[cfg(feature = "iw-ssim")]
+impl<F: PixelFormat> Metric<F> for IwssimRgbAvg {
+    const NAME: &'static str = "iw-ssim (rgb-averaged)";
+    const IDENTITY_SCORE: f64 = 1.0;
+    const HIGHER_IS_BETTER: bool = true;
+    // IW-SSIM's pooling weights come from a model of the *reference*, so swapping
+    // the arguments can change the score: it is deliberately asymmetric.
+    const SYMMETRIC: bool = false;
+    const MIN_DIM: u32 = 11;
+    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa::Result<f64> {
+        iqa::iwssim(
+            reference,
+            distorted,
+            iqa::IwssimOptions {
+                mode: iqa::SsimMode::RgbAveraged,
+            },
+        )
+    }
+}
+
+/// IW-SSIM in Rec.709 luma (`Luma709`) mode.
+#[cfg(feature = "iw-ssim")]
+pub struct IwssimLuma;
+
+#[cfg(feature = "iw-ssim")]
+impl<F: PixelFormat> Metric<F> for IwssimLuma {
+    const NAME: &'static str = "iw-ssim (luma709)";
+    const IDENTITY_SCORE: f64 = 1.0;
+    const HIGHER_IS_BETTER: bool = true;
+    const SYMMETRIC: bool = false;
+    const MIN_DIM: u32 = 11;
+    fn compute(reference: &Image<F>, distorted: &Image<F>) -> iqa::Result<f64> {
+        iqa::iwssim(
+            reference,
+            distorted,
+            iqa::IwssimOptions {
+                mode: iqa::SsimMode::Luma709,
+            },
+        )
+    }
+}
+
 /// PSNR-HVS-M in Rec.709 luma (`Luma709`) mode.
 #[cfg(feature = "psnr-hvs-m")]
 pub struct PsnrHvsMLuma;

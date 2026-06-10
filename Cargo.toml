@@ -42,6 +42,9 @@ exclude = [
     "third_party/highway/docs",
     "third_party/highway/debian",
     "third_party/ssimulacra2/*.svg",
+    # Reference papers (e.g. references/IWSSIM.pdf) are repo documentation, not
+    # part of the crate; keep the multi-MB binaries out of the published package.
+    "references/*.pdf",
 ]
 
 [features]
@@ -49,7 +52,7 @@ exclude = [
 # `default-features = false` and opt into exactly the metrics you need to keep
 # the build pure-Rust (see the README).
 default = ["full", "vendored-lcms2"]
-full = ["psnr", "ssim", "dssim", "ms-ssim", "psnr-hvs-m", "ciede2000", "ssimulacra2", "butteraugli"]
+full = ["psnr", "ssim", "dssim", "ms-ssim", "iw-ssim", "psnr-hvs-m", "ciede2000", "ssimulacra2", "butteraugli"]
 psnr = []
 ssim = []
 # PSNR-HVS-M (Ponomarenko et al. 2007): DCT-domain PSNR with a contrast-
@@ -64,6 +67,10 @@ dssim = ["ssim"]
 # Multi-scale SSIM (Wang/Simoncelli/Bovik 2003). Pure Rust; evaluates `ssim`'s
 # per-window machinery over an image pyramid, so it enables `ssim`.
 ms-ssim = ["ssim"]
+# Information content weighted SSIM (Wang & Li 2011). Pure Rust; a Laplacian-
+# pyramid extension of MS-SSIM that pools `ssim`'s contrast-structure maps by a
+# Gaussian-Scale-Mixture information weight, so it enables `ssim`.
+iw-ssim = ["ssim"]
 ssimulacra2 = ["dep:cc"]
 # Butteraugli, also bound to vendored libjxl C++; shares the native build (and
 # therefore the lcms2 backend) with `ssimulacra2`.
@@ -108,4 +115,4 @@ required-features = ["psnr", "ssim", "dssim", "ssimulacra2", "butteraugli"]
 # build. The lcms2 backends are mutually exclusive, so `all-features` is not a
 # valid build; name the metric set explicitly and pin the vendored backend so
 # docs.rs needs no system library (the vendored C++ ships in the published crate).
-features = ["psnr", "ssim", "dssim", "ms-ssim", "psnr-hvs-m", "ciede2000", "ssimulacra2", "butteraugli", "vendored-lcms2"]
+features = ["psnr", "ssim", "dssim", "ms-ssim", "iw-ssim", "psnr-hvs-m", "ciede2000", "ssimulacra2", "butteraugli", "vendored-lcms2"]

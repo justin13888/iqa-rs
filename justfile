@@ -41,11 +41,11 @@ size:
 mutants-psnr:
     cargo mutants --no-default-features --features psnr -f src/psnr.rs
 
-# Mutation-test SSIM. `ms-ssim` is enabled too: src/ssim.rs also computes the
-# contrast-structure (cs) term, which only MS-SSIM consumes, so MS-SSIM's tests
-# are what pin those lines.
+# Mutation-test SSIM. `ms-ssim` and `iw-ssim` are enabled too: src/ssim.rs also
+# computes the contrast-structure (cs) term and the per-position cs/full maps,
+# which only MS-SSIM and IW-SSIM consume, so their tests are what pin those lines.
 mutants-ssim:
-    cargo mutants --no-default-features --features ssim,ms-ssim -f src/ssim.rs
+    cargo mutants --no-default-features --features ssim,ms-ssim,iw-ssim -f src/ssim.rs
 
 # Mutation-test DSSIM (the transform itself; `dssim` pulls in `ssim`).
 mutants-dssim:
@@ -59,6 +59,7 @@ mutants: mutants-psnr mutants-ssim mutants-dssim
 # stay pinned by their golden reference tests.
 mutants-sweep:
     cargo mutants --no-default-features --features ms-ssim -f src/ms_ssim.rs
+    cargo mutants --no-default-features --features iw-ssim -f src/iw_ssim.rs
     cargo mutants --no-default-features --features psnr-hvs-m -f src/psnr_hvs_m.rs
     cargo mutants --no-default-features --features ciede2000 -f src/ciede2000.rs
     cargo mutants --no-default-features --features ssimulacra2,vendored-lcms2 -f src/ssimulacra2/mod.rs -f src/ssimulacra2/ffi.rs
