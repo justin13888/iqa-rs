@@ -7,6 +7,15 @@
 
 `iqa` provides a single, ergonomic API over the patchwork of visual quality assessment metrics available in the Rust ecosystem. It wraps existing crates where they exist and fills in the gaps where they don't, so you can compute PSNR, SSIMULACRA2, and friends without juggling a different type, color space, and pixel format for each one.
 
+## Project status
+
+`iqa` is in maintenance mode and public API will change only on a major release bump. Each metric is validated against its reference implementation before it is marked stable; see [Metrics](#metrics) for the per-metric status.
+
+Every supported metric is **full-reference and image-focused** — there is no
+video quality assessment (temporal metrics, VMAF, and the like are out of
+scope). If you need a metric that isn't here yet, a GitHub issue or PR is very
+welcome.
+
 ## Installation
 
 ```sh
