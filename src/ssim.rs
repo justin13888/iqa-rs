@@ -233,18 +233,48 @@ pub(crate) fn ssim_cs_map_means(
     a: impl Fn(u32, u32) -> f64,
     b: impl Fn(u32, u32) -> f64,
 ) -> (f64, f64) {
-    let mut sum_full = 0.0;
-    let mut sum_cs = 0.0;
-    let mut count = 0usize;
-    for y0 in 0..=(height - WINDOW as u32) {
-        for x0 in 0..=(width - WINDOW as u32) {
-            let (full, cs) = ssim_at(window, c1, c2, x0, y0, &a, &b);
-            sum_full += full;
-            sum_cs += cs;
-            count += 1;
+    let (full, cs, map_w, map_h) = ssim_cs_maps(width, height, window, c1, c2, a, b);
+    let count = (map_w * map_h) as f64;
+    // `full`/`cs` are filled in the same row-major order this used to accumulate
+    // in, and `Iterator::sum` for `f64` folds left-to-right, so the means stay
+    // bit-identical to the original single-pass form.
+    (
+        full.iter().sum::<f64>() / count,
+        cs.iter().sum::<f64>() / count,
+    )
+}
+
+/// Full-SSIM and contrast-structure (`cs`) values at *every* fully covered
+/// window position, returned as `(full_map, cs_map, map_width, map_height)`.
+///
+/// Both maps are row-major and `map_width * map_height` long, where
+/// `map_width = width - 10` and `map_height = height - 10` (one entry per
+/// position where the 11x11 window fits — the `'valid'` region). This is the
+/// per-position form that [`ssim_cs_map_means`] averages; IW-SSIM needs the maps
+/// themselves to pool them by an information-content weight rather than
+/// uniformly. Positions are visited in a fixed row-major order, so the maps are
+/// deterministic.
+pub(crate) fn ssim_cs_maps(
+    width: u32,
+    height: u32,
+    window: &[[f64; WINDOW]; WINDOW],
+    c1: f64,
+    c2: f64,
+    a: impl Fn(u32, u32) -> f64,
+    b: impl Fn(u32, u32) -> f64,
+) -> (Vec<f64>, Vec<f64>, u32, u32) {
+    let map_w = width - WINDOW as u32 + 1;
+    let map_h = height - WINDOW as u32 + 1;
+    let mut full = Vec::with_capacity((map_w * map_h) as usize);
+    let mut cs = Vec::with_capacity((map_w * map_h) as usize);
+    for y0 in 0..map_h {
+        for x0 in 0..map_w {
+            let (f, c) = ssim_at(window, c1, c2, x0, y0, &a, &b);
+            full.push(f);
+            cs.push(c);
         }
     }
-    (sum_full / count as f64, sum_cs / count as f64)
+    (full, cs, map_w, map_h)
 }
 
 /// Full SSIM and its contrast-structure term `cs` at the single window whose
