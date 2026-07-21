@@ -5,7 +5,7 @@ edition = "2024"
 rust-version = "1.85"
 description = "Command-line front-end to the iqa crate: compute image-quality metrics between two images and emit them as JSON."
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/justin13888/iqa-rs"
+repository = "https://github.com/visualcommons/iqa-rs"
 keywords = ["iqa", "image-quality", "ssim", "psnr", "cli"]
 categories = ["multimedia::images", "command-line-utilities"]
 

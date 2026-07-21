@@ -2,7 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/iqa.svg)](https://crates.io/crates/iqa)
 [![Docs.rs](https://img.shields.io/docsrs/iqa)](https://docs.rs/iqa)
-[![CI](https://github.com/justin13888/iqa-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/justin13888/iqa-rs/actions/workflows/ci.yml)
+[![CI](https://github.com/visualcommons/iqa-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/visualcommons/iqa-rs/actions/workflows/ci.yml)
 ![License](https://img.shields.io/crates/l/iqa.svg)
 
 `iqa` provides a single, ergonomic API over the patchwork of visual quality assessment metrics available in the Rust ecosystem. It wraps existing crates where they exist and fills in the gaps where they don't, so you can compute PSNR, SSIMULACRA2, and friends without juggling a different type, color space, and pixel format for each one.

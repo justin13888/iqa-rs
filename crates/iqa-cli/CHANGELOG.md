@@ -7,19 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.2.1](https://github.com/justin13888/iqa-rs/compare/iqa-cli-v1.2.0...iqa-cli-v1.2.1) - 2026-06-10
+## [1.2.1](https://github.com/visualcommons/iqa-rs/compare/iqa-cli-v1.2.0...iqa-cli-v1.2.1) - 2026-06-10
 
 ### Other
 
 - release v0.2.1
 
-## [1.2.0](https://github.com/justin13888/iqa-rs/compare/iqa-cli-v0.2.0...iqa-cli-v1.2.0) - 2026-06-10
+## [1.2.0](https://github.com/visualcommons/iqa-rs/compare/iqa-cli-v0.2.0...iqa-cli-v1.2.0) - 2026-06-10
 
 ### Added
 
 - *(iw-ssim)* add native IW-SSIM metric (Wang & Li 2011)
 
-## [0.2.0](https://github.com/justin13888/iqa-rs/releases/tag/iqa-cli-v0.2.0) - 2026-06-09
+## [0.2.0](https://github.com/visualcommons/iqa-rs/releases/tag/iqa-cli-v0.2.0) - 2026-06-09
 
 ### Added
 
