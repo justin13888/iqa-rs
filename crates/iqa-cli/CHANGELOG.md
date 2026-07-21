@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2](https://github.com/visualcommons/iqa-rs/compare/iqa-cli-v1.2.1...iqa-cli-v1.2.2) - 2026-07-21
+
+### Other
+
+- update repository URLs to visualcommons organization
+
 ## [1.2.1](https://github.com/visualcommons/iqa-rs/compare/iqa-cli-v1.2.0...iqa-cli-v1.2.1) - 2026-06-10
 
 ### Other
